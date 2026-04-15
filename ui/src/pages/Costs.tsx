@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   BudgetPolicySummary,
@@ -167,9 +168,11 @@ export function Costs() {
     customReady,
   } = useDateRange();
 
+  const { t } = useTranslation();
+
   useEffect(() => {
-    setBreadcrumbs([{ label: "Costs" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("costs.title", "成本") }]);
+  }, [setBreadcrumbs, t]);
 
   const [today, setToday] = useState(() => new Date().toDateString());
   const todayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -529,7 +532,7 @@ export function Costs() {
   }), [budgetPolicies]);
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={DollarSign} message="Select a company to view costs." />;
+    return <EmptyState icon={DollarSign} message={t("costs.selectCompany", "选择公司以查看成本。")} />;
   }
 
   const showCustomPrompt = preset === "custom" && !customReady;
@@ -541,9 +544,9 @@ export function Costs() {
       <div className="space-y-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
-                <h1 className="text-3xl font-semibold tracking-tight">Costs</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">{t("costs.title", "成本")}</h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Inference spend, platform fees, credits, and live quota windows.
+                  {t("costs.description", "推理支出、平台费用、积分和实时配额窗口。")}
                 </p>
             </div>
 
@@ -579,39 +582,39 @@ export function Costs() {
             </div>
           ) : null}
 
-          <div className="grid gap-3 lg:grid-cols-4">
+            <div className="grid gap-3 lg:grid-cols-4">
             <MetricTile
-              label="Inference spend"
+              label={t("costs.inferenceSpend", "推理支出")}
               value={formatCents(spendData?.summary.spendCents ?? 0)}
-              subtitle={`${formatTokens(inferenceTokenTotal)} tokens across request-scoped events`}
+              subtitle={`${formatTokens(inferenceTokenTotal)} tokens`}
               icon={DollarSign}
             />
             <MetricTile
-              label="Budget"
+              label={t("costs.budget", "预算")}
               value={activeBudgetIncidents.length > 0 ? String(activeBudgetIncidents.length) : (
                 spendData?.summary.budgetCents && spendData.summary.budgetCents > 0
                   ? `${spendData.summary.utilizationPercent}%`
-                  : "Open"
+                  : t("costs.open", "开放")
               )}
               subtitle={
                 activeBudgetIncidents.length > 0
-                  ? `${budgetData?.pausedAgentCount ?? 0} agents paused · ${budgetData?.pausedProjectCount ?? 0} projects paused`
+                  ? `${budgetData?.pausedAgentCount ?? 0} ${t("costs.agentsPaused", "智能体已暂停")} · ${budgetData?.pausedProjectCount ?? 0} ${t("costs.projectsPaused", "项目已暂停")}`
                   : spendData?.summary.budgetCents && spendData.summary.budgetCents > 0
-                    ? `${formatCents(spendData.summary.spendCents)} of ${formatCents(spendData.summary.budgetCents)}`
-                    : "No monthly cap configured"
+                    ? `${formatCents(spendData.summary.spendCents)} / ${formatCents(spendData.summary.budgetCents)}`
+                    : t("costs.noMonthlyCap", "无月度上限配置")
               }
               icon={Coins}
             />
             <MetricTile
-              label="Finance net"
+              label={t("costs.financeNet", "财务净额")}
               value={formatCents(financeData?.summary.netCents ?? 0)}
-              subtitle={`${formatCents(financeData?.summary.debitCents ?? 0)} debits · ${formatCents(financeData?.summary.creditCents ?? 0)} credits`}
+              subtitle={`${formatCents(financeData?.summary.debitCents ?? 0)} ${t("costs.debits", "借方")} · ${formatCents(financeData?.summary.creditCents ?? 0)} ${t("costs.credits", "贷方")}`}
               icon={ReceiptText}
             />
             <MetricTile
-              label="Finance events"
+              label={t("costs.financeEvents", "财务事件")}
               value={String(financeData?.summary.eventCount ?? 0)}
-              subtitle={`${formatCents(financeData?.summary.estimatedDebitCents ?? 0)} estimated in range`}
+              subtitle={`${formatCents(financeData?.summary.estimatedDebitCents ?? 0)} ${t("costs.estimated", "估算")}`}
               icon={ArrowUpRight}
             />
           </div>
@@ -619,16 +622,16 @@ export function Costs() {
 
       <Tabs value={mainTab} onValueChange={(value) => setMainTab(value as typeof mainTab)}>
         <TabsList variant="line" className="justify-start">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="budgets">Budgets</TabsTrigger>
-          <TabsTrigger value="providers">Providers</TabsTrigger>
-          <TabsTrigger value="billers">Billers</TabsTrigger>
-          <TabsTrigger value="finance">Finance</TabsTrigger>
+          <TabsTrigger value="overview">{t("costs.overview", "概览")}</TabsTrigger>
+          <TabsTrigger value="budgets">{t("costs.budgets", "预算")}</TabsTrigger>
+          <TabsTrigger value="providers">{t("costs.providers", "提供商")}</TabsTrigger>
+          <TabsTrigger value="billers">{t("costs.billers", "账单方")}</TabsTrigger>
+          <TabsTrigger value="finance">{t("costs.finance", "财务")}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4 space-y-4">
           {showCustomPrompt ? (
-            <p className="text-sm text-muted-foreground">Select a start and end date to load data.</p>
+            <p className="text-sm text-muted-foreground">{t("costs.selectDateRange", "选择开始和结束日期以加载数据。")}</p>
           ) : showOverviewLoading ? (
             <PageSkeleton variant="costs" />
           ) : overviewError ? (
@@ -655,31 +658,31 @@ export function Costs() {
               ) : null}
 
               <div className="grid gap-4 xl:grid-cols-[1.3fr,1fr]">
-                <Card>
-                  <CardHeader className="px-5 pt-5 pb-2">
-                    <CardTitle className="text-base">Inference ledger</CardTitle>
-                    <CardDescription>
-                      Request-scoped inference spend for the selected period.
-                    </CardDescription>
+                  <Card>
+                    <CardHeader className="px-5 pt-5 pb-2">
+                      <CardTitle className="text-base">{t("costs.inferenceLedger", "推理账本")}</CardTitle>
+                      <CardDescription>
+                        {t("costs.inferenceLedgerDesc", "所选期间的请求级推理支出。")}
+                      </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4 px-5 pb-5 pt-2">
                     <div className="flex flex-wrap items-end justify-between gap-3">
                       <div>
-                        <div className="text-3xl font-semibold tabular-nums">
-                          {formatCents(spendData?.summary.spendCents ?? 0)}
-                        </div>
-                        <div className="mt-1 text-sm text-muted-foreground">
-                          {spendData?.summary.budgetCents && spendData.summary.budgetCents > 0
-                            ? `Budget ${formatCents(spendData.summary.budgetCents)}`
-                            : "Unlimited budget"}
-                        </div>
+                       <div className="text-3xl font-semibold tabular-nums">
+                         {formatCents(spendData?.summary.spendCents ?? 0)}
+                       </div>
+                       <div className="mt-1 text-sm text-muted-foreground">
+                         {spendData?.summary.budgetCents && spendData.summary.budgetCents > 0
+                           ? `${t("costs.budget", "预算")} ${formatCents(spendData.summary.budgetCents)}`
+                           : t("costs.unlimitedBudget", "无预算上限")}
+                       </div>
                       </div>
-                      <div className="border border-border px-4 py-3 text-right">
-                        <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">usage</div>
-                        <div className="mt-1 text-lg font-medium tabular-nums">
-                          {formatTokens(inferenceTokenTotal)}
-                        </div>
-                      </div>
+                       <div className="border border-border px-4 py-3 text-right">
+                         <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{t("costs.usage", "用量")}</div>
+                         <div className="mt-1 text-lg font-medium tabular-nums">
+                           {formatTokens(inferenceTokenTotal)}
+                         </div>
+                       </div>
                     </div>
                     {spendData?.summary.budgetCents && spendData.summary.budgetCents > 0 ? (
                       <div className="space-y-2">
@@ -696,21 +699,21 @@ export function Costs() {
                             style={{ width: `${Math.min(100, spendData.summary.utilizationPercent)}%` }}
                           />
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {spendData.summary.utilizationPercent}% of monthly budget consumed in this range.
-                        </div>
+                         <div className="text-xs text-muted-foreground">
+                           {t("costs.budgetConsumed", "本月预算已消耗")} {spendData.summary.utilizationPercent}%。
+                         </div>
                       </div>
                     ) : null}
                   </CardContent>
                 </Card>
 
-                <FinanceSummaryCard
-                  debitCents={financeData?.summary.debitCents ?? 0}
-                  creditCents={financeData?.summary.creditCents ?? 0}
-                  netCents={financeData?.summary.netCents ?? 0}
-                  estimatedDebitCents={financeData?.summary.estimatedDebitCents ?? 0}
-                  eventCount={financeData?.summary.eventCount ?? 0}
-                />
+                 <FinanceSummaryCard
+                   debitCents={financeData?.summary.debitCents ?? 0}
+                   creditCents={financeData?.summary.creditCents ?? 0}
+                   netCents={financeData?.summary.netCents ?? 0}
+                   estimatedDebitCents={financeData?.summary.estimatedDebitCents ?? 0}
+                   eventCount={financeData?.summary.eventCount ?? 0}
+                 />
               </div>
 
               <div className="grid gap-4 xl:grid-cols-[1.25fr,0.95fr]">

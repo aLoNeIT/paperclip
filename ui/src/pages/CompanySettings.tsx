@@ -1,4 +1,5 @@
 import { ChangeEvent, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "@/lib/router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DEFAULT_FEEDBACK_DATA_SHARING_TERMS_VERSION } from "@paperclipai/shared";
@@ -222,17 +223,19 @@ export function CompanySettings() {
     }
   });
 
+  const { t } = useTranslation();
+
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Settings" }
+      { label: selectedCompany?.name ?? t("company.title", "公司"), href: "/dashboard" },
+      { label: t("settings.title", "设置") }
     ]);
-  }, [setBreadcrumbs, selectedCompany?.name]);
+  }, [setBreadcrumbs, selectedCompany?.name, t]);
 
   if (!selectedCompany) {
     return (
       <div className="text-sm text-muted-foreground">
-        No company selected. Select a company from the switcher above.
+        {t("settings.noCompanySelected", "未选择公司。请从上方选择公司。")}
       </div>
     );
   }
@@ -249,16 +252,16 @@ export function CompanySettings() {
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-2">
         <Settings className="h-5 w-5 text-muted-foreground" />
-        <h1 className="text-lg font-semibold">Company Settings</h1>
+        <h1 className="text-lg font-semibold">{t("settings.title", "设置")}</h1>
       </div>
 
       {/* General */}
       <div className="space-y-4">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          General
+          {t("settings.general", "通用")}
         </div>
         <div className="space-y-3 rounded-md border border-border px-4 py-4">
-          <Field label="Company name" hint="The display name for your company.">
+          <Field label={t("company.name", "公司名称")} hint={t("settings.companyNameHint", "公司的显示名称。")}>
             <input
               className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
               type="text"
@@ -267,14 +270,14 @@ export function CompanySettings() {
             />
           </Field>
           <Field
-            label="Description"
-            hint="Optional description shown in the company profile."
+            label={t("company.description", "描述")}
+            hint={t("settings.companyDescriptionHint", "可选的公司简介。")}
           >
             <input
               className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
               type="text"
               value={description}
-              placeholder="Optional company description"
+              placeholder={t("settings.companyDescriptionPlaceholder", "可选的公司简介")}
               onChange={(e) => setDescription(e.target.value)}
             />
           </Field>
@@ -284,7 +287,7 @@ export function CompanySettings() {
       {/* Appearance */}
       <div className="space-y-4">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Appearance
+          {t("settings.appearance", "外观")}
         </div>
         <div className="space-y-3 rounded-md border border-border px-4 py-4">
           <div className="flex items-start gap-4">
@@ -298,8 +301,8 @@ export function CompanySettings() {
             </div>
             <div className="flex-1 space-y-3">
               <Field
-                label="Logo"
-                hint="Upload a PNG, JPEG, WEBP, GIF, or SVG logo image."
+                label={t("settings.logo", "标志")}
+                hint={t("settings.logoHint", "上传 PNG、JPEG、WEBP、GIF 或 SVG 标志图片。")}
               >
                 <div className="space-y-2">
                   <input
@@ -316,7 +319,7 @@ export function CompanySettings() {
                         onClick={handleClearLogo}
                         disabled={clearLogoMutation.isPending}
                       >
-                        {clearLogoMutation.isPending ? "Removing..." : "Remove logo"}
+                        {clearLogoMutation.isPending ? t("common.removing", "移除中...") : t("settings.removeLogo", "移除标志")}
                       </Button>
                     </div>
                   )}
@@ -325,7 +328,7 @@ export function CompanySettings() {
                       {logoUploadError ??
                         (logoUploadMutation.error instanceof Error
                           ? logoUploadMutation.error.message
-                          : "Logo upload failed")}
+                          : t("settings.logoUploadFailed", "标志上传失败")}
                     </span>
                   )}
                   {clearLogoMutation.isError && (
@@ -333,14 +336,14 @@ export function CompanySettings() {
                       {clearLogoMutation.error.message}
                     </span>
                   )}
-                  {logoUploadMutation.isPending && (
-                    <span className="text-xs text-muted-foreground">Uploading logo...</span>
-                  )}
+                   {logoUploadMutation.isPending && (
+                     <span className="text-xs text-muted-foreground">{t("settings.uploadingLogo", "上传标志中...")}</span>
+                   )}
                 </div>
               </Field>
               <Field
-                label="Brand color"
-                hint="Sets the hue for the company icon. Leave empty for auto-generated color."
+                label={t("settings.brandColor", "品牌颜色")}
+                hint={t("settings.brandColorHint", "设置公司图标的主色调。留空使用自动生成颜色。")}
               >
                 <div className="flex items-center gap-2">
                   <input
@@ -358,7 +361,7 @@ export function CompanySettings() {
                         setBrandColor(v);
                       }
                     }}
-                    placeholder="Auto"
+                    placeholder={t("settings.auto", "自动")}
                     className="w-28 rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm font-mono outline-none"
                   />
                   {brandColor && (
@@ -368,7 +371,7 @@ export function CompanySettings() {
                       onClick={() => setBrandColor("")}
                       className="text-xs text-muted-foreground"
                     >
-                      Clear
+                      {t("common.clear", "清除")}
                     </Button>
                   )}
                 </div>
@@ -386,16 +389,16 @@ export function CompanySettings() {
             onClick={handleSaveGeneral}
             disabled={generalMutation.isPending || !companyName.trim()}
           >
-            {generalMutation.isPending ? "Saving..." : "Save changes"}
+            {generalMutation.isPending ? t("common.saving", "保存中...") : t("actions.save", "保存")}
           </Button>
           {generalMutation.isSuccess && (
-            <span className="text-xs text-muted-foreground">Saved</span>
+            <span className="text-xs text-muted-foreground">{t("common.saved", "已保存")}</span>
           )}
           {generalMutation.isError && (
             <span className="text-xs text-destructive">
               {generalMutation.error instanceof Error
                   ? generalMutation.error.message
-                  : "Failed to save"}
+                  : t("errorsFull.failedToSave", "保存失败")}
             </span>
           )}
         </div>
@@ -404,12 +407,12 @@ export function CompanySettings() {
       {/* Hiring */}
       <div className="space-y-4" data-testid="company-settings-team-section">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Hiring
+          {t("settings.hiring", "招聘")}
         </div>
         <div className="rounded-md border border-border px-4 py-3">
           <ToggleField
-            label="Require board approval for new hires"
-            hint="New agent hires stay pending until approved by board."
+            label={t("settings.requireBoardApproval", "需要董事会批准新招聘")}
+            hint={t("settings.requireBoardApprovalHint", "新智能体招聘在董事会批准前保持待处理状态。")}
             checked={!!selectedCompany.requireBoardApprovalForNewAgents}
             onChange={(v) => settingsMutation.mutate(v)}
             toggleTestId="company-settings-team-approval-toggle"
@@ -419,31 +422,31 @@ export function CompanySettings() {
 
       <div className="space-y-4">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Feedback Sharing
+          {t("settings.feedbackSharing", "反馈共享")}
         </div>
         <div className="space-y-3 rounded-md border border-border px-4 py-4">
           <ToggleField
-            label="Allow sharing voted AI outputs with Paperclip Labs"
-            hint="Only AI-generated outputs you explicitly vote on are eligible for feedback sharing."
+            label={t("settings.feedbackSharingLabel", "允许与 Paperclip Labs 共享投票的 AI 输出")}
+            hint={t("settings.feedbackSharingHint", "只有你明确投票的 AI 生成输出才有资格进行反馈共享。")}
             checked={!!selectedCompany.feedbackDataSharingEnabled}
             onChange={(enabled) => feedbackSharingMutation.mutate(enabled)}
           />
           <p className="text-sm text-muted-foreground">
-            Votes are always saved locally. This setting controls whether voted AI outputs may also be marked for sharing with Paperclip Labs.
+            {t("settings.feedbackSharingDesc", "投票始终本地保存。此设置控制投票的 AI 输出是否也可以标记为与 Paperclip Labs 共享。")}
           </p>
           <div className="space-y-1 text-xs text-muted-foreground">
             <div>
-              Terms version: {selectedCompany.feedbackDataSharingTermsVersion ?? DEFAULT_FEEDBACK_DATA_SHARING_TERMS_VERSION}
+              {t("settings.termsVersion", "条款版本")}: {selectedCompany.feedbackDataSharingTermsVersion ?? DEFAULT_FEEDBACK_DATA_SHARING_TERMS_VERSION}
             </div>
             {selectedCompany.feedbackDataSharingConsentAt ? (
               <div>
-                Enabled {new Date(selectedCompany.feedbackDataSharingConsentAt).toLocaleString()}
+                {t("settings.enabled", "已启用")} {new Date(selectedCompany.feedbackDataSharingConsentAt).toLocaleString()}
                 {selectedCompany.feedbackDataSharingConsentByUserId
-                  ? ` by ${selectedCompany.feedbackDataSharingConsentByUserId}`
+                  ? ` ${t("settings.by", "由")} ${selectedCompany.feedbackDataSharingConsentByUserId}`
                   : ""}
               </div>
             ) : (
-              <div>Sharing is currently disabled.</div>
+              <div>{t("settings.sharingDisabled", "共享当前已禁用。")}</div>
             )}
             {FEEDBACK_TERMS_URL ? (
               <a
@@ -452,7 +455,7 @@ export function CompanySettings() {
                 rel="noreferrer"
                 className="inline-flex text-foreground underline underline-offset-4"
               >
-                Read our terms of service
+                {t("settings.readTerms", "阅读服务条款")}
               </a>
             ) : null}
           </div>
@@ -462,14 +465,14 @@ export function CompanySettings() {
       {/* Invites */}
       <div className="space-y-4" data-testid="company-settings-invites-section">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Invites
+          {t("settings.invites", "邀请")}
         </div>
         <div className="space-y-3 rounded-md border border-border px-4 py-4">
           <div className="flex items-center gap-1.5">
             <span className="text-xs text-muted-foreground">
-              Generate an OpenClaw agent invite snippet.
+              {t("settings.generateInviteSnippet", "生成 OpenClaw 智能体邀请片段。")}
             </span>
-            <HintIcon text="Creates a short-lived OpenClaw agent invite and renders a copy-ready prompt." />
+            <HintIcon text={t("settings.generateInviteHint", "创建短寿命的 OpenClaw 智能体邀请并生成可复制的提示。")} />
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
@@ -479,8 +482,8 @@ export function CompanySettings() {
               disabled={inviteMutation.isPending}
             >
               {inviteMutation.isPending
-                ? "Generating..."
-                : "Generate OpenClaw Invite Prompt"}
+                ? t("common.generating", "生成中...")
+                : t("settings.generateInvite", "生成 OpenClaw 邀请提示")}
             </Button>
           </div>
           {inviteError && (
@@ -493,7 +496,7 @@ export function CompanySettings() {
             >
               <div className="flex items-center justify-between gap-2">
                 <div className="text-xs text-muted-foreground">
-                  OpenClaw Invite Prompt
+                  {t("settings.openClawInvite", "OpenClaw 邀请提示")}
                 </div>
                 {snippetCopied && (
                   <span
@@ -501,7 +504,7 @@ export function CompanySettings() {
                     className="flex items-center gap-1 text-xs text-green-600 animate-pulse"
                   >
                     <Check className="h-3 w-3" />
-                    Copied
+                    {t("common.copied", "已复制")}
                   </span>
                 )}
               </div>
@@ -528,7 +531,7 @@ export function CompanySettings() {
                       }
                     }}
                   >
-                    {snippetCopied ? "Copied snippet" : "Copy snippet"}
+                    {snippetCopied ? t("settings.copiedSnippet", "已复制片段") : t("settings.copySnippet", "复制片段")}
                   </Button>
                 </div>
               </div>
@@ -540,24 +543,24 @@ export function CompanySettings() {
       {/* Import / Export */}
       <div className="space-y-4">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Company Packages
+          {t("settings.companyPackages", "公司包")}
         </div>
         <div className="rounded-md border border-border px-4 py-4">
           <p className="text-sm text-muted-foreground">
-            Import and export have moved to dedicated pages accessible from the{" "}
-            <a href="/org" className="underline hover:text-foreground">Org Chart</a> header.
+            {t("settings.importExportMoved", "导入和导出已移至专用页面，可从")}{" "}
+            <a href="/org" className="underline hover:text-foreground">{t("org.title", "组织架构图")}</a> {t("settings.header", "头部")} {t("settings.access", "访问")}。
           </p>
           <div className="mt-3 flex items-center gap-2">
             <Button size="sm" variant="outline" asChild>
               <Link to="/company/export">
                 <Download className="mr-1.5 h-3.5 w-3.5" />
-                Export
+                {t("actions.export", "导出")}
               </Link>
             </Button>
             <Button size="sm" variant="outline" asChild>
               <Link to="/company/import">
                 <Upload className="mr-1.5 h-3.5 w-3.5" />
-                Import
+                {t("actions.import", "导入")}
               </Link>
             </Button>
           </div>
@@ -567,12 +570,11 @@ export function CompanySettings() {
       {/* Danger Zone */}
       <div className="space-y-4">
         <div className="text-xs font-medium text-destructive uppercase tracking-wide">
-          Danger Zone
+          {t("settings.dangerZone", "危险区域")}
         </div>
         <div className="space-y-3 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-4">
           <p className="text-sm text-muted-foreground">
-            Archive this company to hide it from the sidebar. This persists in
-            the database.
+            {t("settings.archiveCompanyDesc", "归档此公司以从侧边栏隐藏。此操作会在数据库中持久化。")}
           </p>
           <div className="flex items-center gap-2">
             <Button
@@ -585,7 +587,7 @@ export function CompanySettings() {
               onClick={() => {
                 if (!selectedCompanyId) return;
                 const confirmed = window.confirm(
-                  `Archive company "${selectedCompany.name}"? It will be hidden from the sidebar.`
+                  `${t("settings.archiveCompanyConfirm", "归档公司")} "${selectedCompany.name}"？${t("settings.archiveCompanyConfirmDesc", "它将从侧边栏隐藏。")}`
                 );
                 if (!confirmed) return;
                 const nextCompanyId =
@@ -601,16 +603,16 @@ export function CompanySettings() {
               }}
             >
               {archiveMutation.isPending
-                ? "Archiving..."
+                ? t("common.archiving", "归档中...")
                 : selectedCompany.status === "archived"
-                ? "Already archived"
-                : "Archive company"}
+                ? t("settings.alreadyArchived", "已归档")
+                : t("settings.archiveCompany", "归档公司")}
             </Button>
             {archiveMutation.isError && (
               <span className="text-xs text-destructive">
                 {archiveMutation.error instanceof Error
                   ? archiveMutation.error.message
-                  : "Failed to archive company"}
+                  : t("errorsFull.failedToArchiveCompany", "归档公司失败")}
               </span>
             )}
           </div>

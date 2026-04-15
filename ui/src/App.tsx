@@ -1,6 +1,7 @@
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 import { Layout } from "./components/Layout";
 import { OnboardingWizard } from "./components/OnboardingWizard";
 import { authApi } from "./api/auth";
@@ -52,14 +53,15 @@ import { loadLastInboxTab } from "./lib/inbox";
 import { shouldRedirectCompanylessRouteToOnboarding } from "./lib/onboarding-route";
 
 function BootstrapPendingPage({ hasActiveInvite = false }: { hasActiveInvite?: boolean }) {
+  const { t } = useTranslation();
   return (
     <div className="mx-auto max-w-xl py-10">
       <div className="rounded-lg border border-border bg-card p-6">
-        <h1 className="text-xl font-semibold">Instance setup required</h1>
+        <h1 className="text-xl font-semibold">{t("settings.instanceSetupRequired", "需要设置实例")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {hasActiveInvite
-            ? "No instance admin exists yet. A bootstrap invite is already active. Check your Paperclip startup logs for the first admin invite URL, or run this command to rotate it:"
-            : "No instance admin exists yet. Run this command in your Paperclip environment to generate the first admin invite URL:"}
+            ? t("settings.noInstanceAdminWithInvite", "暂无实例管理员。引导邀请已激活。请查看 Paperclip 启动日志获取首个管理员邀请链接，或运行以下命令轮换：")
+            : t("settings.noInstanceAdmin", "暂无实例管理员。请在 Paperclip 环境中运行以下命令生成首个管理员邀请链接：")}
         </p>
         <pre className="mt-4 overflow-x-auto rounded-md border border-border bg-muted/30 p-3 text-xs">
 {`pnpm paperclipai auth bootstrap-ceo`}
@@ -94,14 +96,16 @@ function CloudAccessGate() {
     retry: false,
   });
 
+  const { t } = useTranslation();
+
   if (healthQuery.isLoading || (isAuthenticatedMode && sessionQuery.isLoading)) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("states.loading", "加载中...")}</div>;
   }
 
   if (healthQuery.error) {
     return (
       <div className="mx-auto max-w-xl py-10 text-sm text-destructive">
-        {healthQuery.error instanceof Error ? healthQuery.error.message : "Failed to load app state"}
+        {healthQuery.error instanceof Error ? healthQuery.error.message : t("errorsFull.failedToLoadAppState", "加载应用状态失败")}
       </div>
     );
   }
@@ -204,16 +208,18 @@ function OnboardingRoutePage() {
     ? companies.find((company) => company.issuePrefix.toUpperCase() === companyPrefix.toUpperCase()) ?? null
     : null;
 
+  const { t } = useTranslation();
+
   const title = matchedCompany
-    ? `Add another agent to ${matchedCompany.name}`
+    ? t("onboarding.addAgentTo", "为 {{companyName}} 添加智能体", { companyName: matchedCompany.name })
     : companies.length > 0
-      ? "Create another company"
-      : "Create your first company";
+      ? t("onboarding.createAnotherCompany", "创建另一家公司")
+      : t("onboarding.createFirstCompany", "创建你的第一家公司");
   const description = matchedCompany
-    ? "Run onboarding again to add an agent and a starter task for this company."
+    ? t("onboarding.addAgentDesc", "再次运行入驻流程，为这家公司添加智能体和首个启动任务。")
     : companies.length > 0
-      ? "Run onboarding again to create another company and seed its first agent."
-      : "Get started by creating a company and your first agent.";
+      ? t("onboarding.createAnotherCompanyDesc", "再次运行入驻流程，创建另一家公司并播种其首个智能体。")
+      : t("onboarding.createFirstCompanyDesc", "开始创建公司，并创建你的首个智能体。");
 
   return (
     <div className="mx-auto max-w-xl py-10">
@@ -228,7 +234,7 @@ function OnboardingRoutePage() {
                 : openOnboarding()
             }
           >
-            {matchedCompany ? "Add Agent" : "Start Onboarding"}
+            {matchedCompany ? t("actions.add", "添加") + " " + t("agents.title", "智能体") : t("onboarding.start", "开始入驻")}
           </Button>
         </div>
       </div>
@@ -240,8 +246,10 @@ function CompanyRootRedirect() {
   const { companies, selectedCompany, loading } = useCompany();
   const location = useLocation();
 
+  const { t } = useTranslation();
+
   if (loading) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("states.loading", "加载中...")}</div>;
   }
 
   const targetCompany = selectedCompany ?? companies[0] ?? null;
@@ -264,8 +272,10 @@ function UnprefixedBoardRedirect() {
   const location = useLocation();
   const { companies, selectedCompany, loading } = useCompany();
 
+  const { t } = useTranslation();
+
   if (loading) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("states.loading", "加载中...")}</div>;
   }
 
   const targetCompany = selectedCompany ?? companies[0] ?? null;
@@ -290,17 +300,18 @@ function UnprefixedBoardRedirect() {
 }
 
 function NoCompaniesStartPage() {
+  const { t } = useTranslation();
   const { openOnboarding } = useDialog();
 
   return (
     <div className="mx-auto max-w-xl py-10">
       <div className="rounded-lg border border-border bg-card p-6">
-        <h1 className="text-xl font-semibold">Create your first company</h1>
+        <h1 className="text-xl font-semibold">{t("onboarding.createFirstCompany", "创建你的第一家公司")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Get started by creating a company.
+          {t("onboarding.createFirstCompanyDesc", "开始创建公司。")}
         </p>
         <div className="mt-4">
-          <Button onClick={() => openOnboarding()}>New Company</Button>
+          <Button onClick={() => openOnboarding()}>{t("company.create", "创建公司")}</Button>
         </div>
       </div>
     </div>

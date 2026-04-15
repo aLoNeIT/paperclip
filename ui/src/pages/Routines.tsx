@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearchParams } from "@/lib/router";
 import { Check, ChevronDown, ChevronRight, Layers, MoreHorizontal, Plus, Repeat } from "lucide-react";
@@ -328,9 +329,11 @@ export function Routines() {
     : "paperclip:routines-view";
   const [routineViewState, setRoutineViewState] = useState<RoutineViewState>(() => getRoutineViewState(routineViewStateKey));
 
+  const { t } = useTranslation();
+
   useEffect(() => {
-    setBreadcrumbs([{ label: "Routines" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("routines.title", "例行任务") }]);
+  }, [setBreadcrumbs, t]);
 
   useEffect(() => {
     setRoutineViewState(getRoutineViewState(routineViewStateKey));
@@ -555,7 +558,7 @@ export function Routines() {
   }
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Repeat} message="Select a company to view routines." />;
+    return <EmptyState icon={Repeat} message={t("routines.selectCompany", "选择公司以查看例行任务。")} />;
   }
 
   if (isLoading) {
@@ -567,15 +570,15 @@ export function Routines() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Routines
+            {t("routines.title", "例行任务")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Recurring work definitions that materialize into auditable execution issues.
+            {t("routines.description", "将重复性工作定义为可审计的执行任务。")}
           </p>
         </div>
         <Button onClick={() => setComposerOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          Create routine
+          {t("routines.create", "创建例行任务")}
         </Button>
       </div>
 
@@ -585,28 +588,28 @@ export function Routines() {
           value={activeTab}
           onValueChange={handleTabChange}
           items={[
-            { value: "routines", label: "Routines" },
-            { value: "runs", label: "Recent Runs" },
+            { value: "routines", label: t("routines.routines", "例行任务") },
+            { value: "runs", label: t("routines.recentRuns", "最近运行") },
           ]}
         />
         <TabsContent value="routines" className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              {(routines ?? []).length} routine{(routines ?? []).length === 1 ? "" : "s"}
+              {(routines ?? []).length} {t("routines.count", "个例行任务")}
             </p>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-xs">
                   <Layers className="h-3.5 w-3.5 sm:h-3 sm:w-3 sm:mr-1" />
-                  <span className="hidden sm:inline">Group</span>
+                  <span className="hidden sm:inline">{t("routines.group", "分组")}</span>
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-44 p-0">
                 <div className="p-2 space-y-0.5">
                   {([
-                    ["project", "Project"],
-                    ["assignee", "Agent"],
-                    ["none", "None"],
+                    ["project", t("projects.title", "项目")],
+                    ["assignee", t("agents.title", "智能体")],
+                    ["none", t("routines.none", "无")],
                   ] as const).map(([value, label]) => (
                     <button
                       key={value}
@@ -655,9 +658,9 @@ export function Routines() {
         >
           <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">New routine</p>
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-muted-foreground">{t("routines.newRoutine", "新建例行任务")}</p>
               <p className="text-sm text-muted-foreground">
-                Define the recurring work first. Default project and agent are optional for draft routines.
+                {t("routines.newRoutineDesc", "首先定义重复性工作。默认项目和智能体对于草稿例行任务是可选的。")}
               </p>
             </div>
             <Button
@@ -669,7 +672,7 @@ export function Routines() {
               }}
               disabled={createRoutine.isPending}
             >
-              Cancel
+              {t("common.cancel", "取消")}
             </Button>
           </div>
 
@@ -678,7 +681,7 @@ export function Routines() {
               <textarea
                 ref={titleInputRef}
                 className="w-full resize-none overflow-hidden bg-transparent text-xl font-semibold outline-none placeholder:text-muted-foreground/50"
-                placeholder="Routine title"
+                placeholder={t("routines.titlePlaceholder", "例行任务标题")}
                 rows={1}
                 value={draft.title}
                 onChange={(event) => {
@@ -876,7 +879,7 @@ export function Routines() {
 
           <div className="shrink-0 flex flex-col gap-3 border-t border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-muted-foreground">
-              After creation, Paperclip takes you straight to trigger setup. Draft routines stay paused until you add a default agent.
+              {t("routines.afterCreateDesc", "创建后，Paperclip 将直接带你进入触发器设置。草稿例行任务保持暂停状态，直到你添加默认智能体。")}
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
               <Button
@@ -887,11 +890,11 @@ export function Routines() {
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
-                {createRoutine.isPending ? "Creating..." : "Create routine"}
+                {createRoutine.isPending ? t("common.creating", "创建中...") : t("routines.create", "创建例行任务")}
               </Button>
               {createRoutine.isError ? (
                 <p className="text-sm text-destructive">
-                  {createRoutine.error instanceof Error ? createRoutine.error.message : "Failed to create routine"}
+                  {createRoutine.error instanceof Error ? createRoutine.error.message : t("errorsFull.failedToCreateRoutine", "创建例行任务失败")}
                 </p>
               ) : null}
             </div>
@@ -902,7 +905,7 @@ export function Routines() {
       {error ? (
         <Card>
           <CardContent className="pt-6 text-sm text-destructive">
-            {error instanceof Error ? error.message : "Failed to load routines"}
+            {error instanceof Error ? error.message : t("errorsFull.failedToLoadRoutines", "加载例行任务失败")}
           </CardContent>
         </Card>
       ) : null}
@@ -913,7 +916,7 @@ export function Routines() {
             <div className="py-12">
               <EmptyState
                 icon={Repeat}
-                message="No routines yet. Use Create routine to define the first recurring workflow."
+                message={t("routines.noRoutines", "暂无例行任务。使用「创建例行任务」来定义第一个重复性工作流。")}
               />
             </div>
           ) : (

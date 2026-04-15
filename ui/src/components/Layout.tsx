@@ -15,6 +15,7 @@ import { NewAgentDialog } from "./NewAgentDialog";
 import { KeyboardShortcutsCheatsheet } from "./KeyboardShortcutsCheatsheet";
 import { ToastViewport } from "./ToastViewport";
 import { MobileBottomNav } from "./MobileBottomNav";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { WorktreeBanner } from "./WorktreeBanner";
 import { DevRestartBanner } from "./DevRestartBanner";
 import { useDialog } from "../context/DialogContext";
@@ -375,6 +376,7 @@ export function Layout() {
                     <Settings className="h-4 w-4" />
                   </Link>
                 </Button>
+                <LanguageSwitcher />
                 <Button
                   type="button"
                   variant="ghost"
@@ -434,6 +436,7 @@ export function Layout() {
                     <Settings className="h-4 w-4" />
                   </Link>
                 </Button>
+                <LanguageSwitcher />
                 <Button
                   type="button"
                   variant="ghost"
