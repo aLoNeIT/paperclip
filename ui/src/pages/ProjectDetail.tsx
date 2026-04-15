@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
 import { Link, useParams, useNavigate, useLocation, Navigate } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { PROJECT_COLORS, isUuidLike, type BudgetPolicySummary, type ExecutionWorkspace } from "@paperclipai/shared";
 import { budgetsApi } from "../api/budgets";
 import { executionWorkspacesApi } from "../api/execution-workspaces";
@@ -63,10 +64,12 @@ function OverviewContent({
   project,
   onUpdate,
   imageUploadHandler,
+  t,
 }: {
   project: { description: string | null; status: string; targetDate: string | null };
   onUpdate: (data: Record<string, unknown>) => void;
   imageUploadHandler?: (file: File) => Promise<string>;
+  t: (key: string, fallback: string) => string;
 }) {
   return (
     <div className="space-y-6">
@@ -76,21 +79,21 @@ function OverviewContent({
         nullable
         as="p"
         className="text-sm text-muted-foreground"
-        placeholder="Add a description..."
+        placeholder={t("projectDetail.addDescription", "添加描述...")}
         multiline
         imageUploadHandler={imageUploadHandler}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
         <div>
-          <span className="text-muted-foreground">Status</span>
+          <span className="text-muted-foreground">{t("projectDetail.status", "状态")}</span>
           <div className="mt-1">
             <StatusBadge status={project.status} />
           </div>
         </div>
         {project.targetDate && (
           <div>
-            <span className="text-muted-foreground">Target Date</span>
+            <span className="text-muted-foreground">{t("projectDetail.targetDate", "目标日期")}</span>
             <p>{project.targetDate}</p>
           </div>
         )}
@@ -222,11 +225,13 @@ function ProjectWorkspacesContent({
   projectId,
   projectRef,
   summaries,
+  t,
 }: {
   companyId: string;
   projectId: string;
   projectRef: string;
   summaries: ReturnType<typeof buildProjectWorkspaceSummaries>;
+  t: (key: string, fallback: string) => string;
 }) {
   const queryClient = useQueryClient();
   const [runtimeActionKey, setRuntimeActionKey] = useState<string | null>(null);
@@ -257,11 +262,19 @@ function ProjectWorkspacesContent({
   });
 
   if (summaries.length === 0) {
-    return <p className="text-sm text-muted-foreground">No non-default workspace activity yet.</p>;
+    return <p className="text-sm text-muted-foreground">{t("projectDetail.noWorkspaceActivity", "暂无非默认工作区活动")}</p>;
   }
 
   const activeSummaries = summaries.filter((summary) => summary.executionWorkspaceStatus !== "cleanup_failed");
   const cleanupFailedSummaries = summaries.filter((summary) => summary.executionWorkspaceStatus === "cleanup_failed");
+
+  const cleanupAttentionNeeded = t("projectDetail.cleanupAttentionNeeded", "清理需要注意");
+  const issuesLabel = t("projectDetail.issuesLabel", "任务");
+  const moreLabel = t("projectDetail.more", "更多");
+  const retryCloseLabel = t("projectDetail.retryClose", "重试关闭");
+  const closeLabel = t("projectDetail.close", "关闭");
+  const stopLabel = t("projectDetail.stop", "停止");
+  const startLabel = t("projectDetail.start", "启动");
 
   const renderSummaryRow = (summary: ReturnType<typeof buildProjectWorkspaceSummaries>[number]) => {
     const visibleIssues = summary.issues.slice(0, 5);
@@ -328,7 +341,7 @@ function ProjectWorkspacesContent({
                 ) : (
                   <Play className="h-3 w-3" />
                 )}
-                {hasRunningServices ? "Stop" : "Start"}
+                {hasRunningServices ? stopLabel : startLabel}
               </Button>
             ) : null}
             {summary.kind === "execution_workspace" && summary.executionWorkspaceId && summary.executionWorkspaceStatus ? (
@@ -342,7 +355,7 @@ function ProjectWorkspacesContent({
                   status: summary.executionWorkspaceStatus!,
                 })}
               >
-                {summary.executionWorkspaceStatus === "cleanup_failed" ? "Retry close" : "Close"}
+                {summary.executionWorkspaceStatus === "cleanup_failed" ? retryCloseLabel : closeLabel}
               </Button>
             ) : null}
           </div>
@@ -384,7 +397,7 @@ function ProjectWorkspacesContent({
         {/* Issues */}
         {summary.issues.length > 0 ? (
           <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-            <span className="font-medium text-muted-foreground/70">Issues</span>
+            <span className="font-medium text-muted-foreground/70">{issuesLabel}</span>
             {visibleIssues.map((issue) => (
               <IssuesQuicklook key={issue.id} issue={issue}>
                 <Link
@@ -397,7 +410,7 @@ function ProjectWorkspacesContent({
             ))}
             {hiddenIssueCount > 0 ? (
               <Link to={workspaceHref} className="hover:text-foreground hover:underline">
-                +{hiddenIssueCount} more
+                +{hiddenIssueCount} {moreLabel}
               </Link>
             ) : null}
           </div>
@@ -415,7 +428,7 @@ function ProjectWorkspacesContent({
         {cleanupFailedSummaries.length > 0 ? (
           <div className="space-y-2">
             <div className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-              Cleanup attention needed
+              {cleanupAttentionNeeded}
             </div>
             <div className="overflow-hidden rounded-xl border border-amber-500/20 bg-amber-500/5">
               {cleanupFailedSummaries.map(renderSummaryRow)}
@@ -455,6 +468,7 @@ export function ProjectDetail() {
   const { companies, selectedCompanyId, setSelectedCompanyId } = useCompany();
   const { closePanel } = usePanel();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { pushToast } = useToast();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -603,10 +617,10 @@ export function ProjectDetail() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Projects", href: "/projects" },
-      { label: project?.name ?? routeProjectRef ?? "Project" },
+      { label: t("nav.projects", "项目"), href: "/projects" },
+      { label: project?.name ?? routeProjectRef ?? t("projectDetail.project", "项目") },
     ]);
-  }, [setBreadcrumbs, project, routeProjectRef]);
+  }, [setBreadcrumbs, project, routeProjectRef, t]);
 
   useEffect(() => {
     if (!project) return;
@@ -857,11 +871,11 @@ export function ProjectDetail() {
       <Tabs value={activeTab ?? "list"} onValueChange={(value) => handleTabChange(value as ProjectTab)}>
         <PageTabBar
           items={[
-            { value: "list", label: "Issues" },
-            { value: "overview", label: "Overview" },
-            ...(showWorkspacesTab ? [{ value: "workspaces", label: "Workspaces" }] : []),
-            { value: "configuration", label: "Configuration" },
-            { value: "budget", label: "Budget" },
+            { value: "list", label: t("projectDetail.issues", "任务") },
+            { value: "overview", label: t("projectDetail.overview", "概览") },
+            ...(showWorkspacesTab ? [{ value: "workspaces", label: t("projectDetail.workspaces", "工作区") }] : []),
+            { value: "configuration", label: t("projectDetail.configuration", "配置") },
+            { value: "budget", label: t("projectDetail.budget", "预算") },
             ...pluginTabItems.map((item) => ({
               value: item.value,
               label: item.label,
@@ -881,6 +895,7 @@ export function ProjectDetail() {
             const asset = await uploadImage.mutateAsync(file);
             return asset.contentPath;
           }}
+          t={t}
         />
       )}
 
@@ -898,10 +913,11 @@ export function ProjectDetail() {
               projectId={project.id}
               projectRef={canonicalProjectRef}
               summaries={workspaceSummaries}
+              t={t}
             />
           )
         ) : (
-          <p className="text-sm text-muted-foreground">Loading workspaces...</p>
+          <p className="text-sm text-muted-foreground">{t("projectDetail.loadingWorkspaces", "正在加载工作区...")}</p>
         )
       ) : null}
 
