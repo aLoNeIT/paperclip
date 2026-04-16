@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "@/lib/router";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "react-i18next";
 import { agentsApi } from "../api/agents";
 import { companySkillsApi } from "../api/companySkills";
 import { queryKeys } from "../lib/queryKeys";
@@ -56,6 +57,7 @@ export function NewAgent() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
   const presetAdapterType = searchParams.get("adapterType");
 
   const [name, setName] = useState("");
@@ -97,10 +99,10 @@ export function NewAgent() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Agents", href: "/agents" },
-      { label: "New Agent" },
+      { label: t("agents.title", "智能体"), href: "/agents" },
+      { label: t("newAgent.title", "新建智能体") },
     ]);
-  }, [setBreadcrumbs]);
+  }, [setBreadcrumbs, t]);
 
   useEffect(() => {
     if (isFirstAgent) {
@@ -128,7 +130,7 @@ export function NewAgent() {
       navigate(agentUrl(result.agent));
     },
     onError: (error) => {
-      setFormError(error instanceof Error ? error.message : "Failed to create agent");
+      setFormError(error instanceof Error ? error.message : t("newAgent.failedToCreate", "创建智能体失败"));
     },
   });
 
@@ -140,30 +142,30 @@ export function NewAgent() {
   function handleSubmit() {
     if (!selectedCompanyId || !name.trim()) return;
     setFormError(null);
-    if (configValues.adapterType === "opencode_local") {
+      if (configValues.adapterType === "opencode_local") {
       const selectedModel = configValues.model.trim();
       if (!selectedModel) {
-        setFormError("OpenCode requires an explicit model in provider/model format.");
+        setFormError(t("newAgent.opencodeRequiresModel", "OpenCode 需要明确指定 provider/model 格式的模型。"));
         return;
       }
       if (adapterModelsError) {
         setFormError(
           adapterModelsError instanceof Error
             ? adapterModelsError.message
-            : "Failed to load OpenCode models.",
+            : t("newAgent.failedToLoadOpenCodeModels", "加载 OpenCode 模型失败"),
         );
         return;
       }
       if (adapterModelsLoading || adapterModelsFetching) {
-        setFormError("OpenCode models are still loading. Please wait and try again.");
+        setFormError(t("newAgent.openCodeModelsLoading", "OpenCode 模型仍在加载中。请稍后重试。"));
         return;
       }
       const discovered = adapterModels ?? [];
       if (!discovered.some((entry) => entry.id === selectedModel)) {
         setFormError(
           discovered.length === 0
-            ? "No OpenCode models discovered. Run `opencode models` and authenticate providers."
-            : `Configured OpenCode model is unavailable: ${selectedModel}`,
+            ? t("newAgent.noOpenCodeModelsDiscovered", "未发现 OpenCode 模型。请运行 `opencode models` 并认证提供商。")
+            : t("newAgent.openCodeModelUnavailable", "配置的 OpenCode 模型不可用：{{model}}", { model: selectedModel }),
         );
         return;
       }
@@ -198,9 +200,9 @@ export function NewAgent() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-lg font-semibold">New Agent</h1>
+        <h1 className="text-lg font-semibold">{t("newAgent.title", "新建智能体")}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Advanced agent configuration
+          {t("newAgent.advancedConfig", "高级智能体配置")}
         </p>
       </div>
 
@@ -209,7 +211,7 @@ export function NewAgent() {
         <div className="px-4 pt-4 pb-2">
           <input
             className="w-full text-lg font-semibold bg-transparent outline-none placeholder:text-muted-foreground/50"
-            placeholder="Agent name"
+            placeholder={t("newAgent.agentNamePlaceholder", "智能体名称")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
@@ -220,7 +222,7 @@ export function NewAgent() {
         <div className="px-4 pb-2">
           <input
             className="w-full bg-transparent outline-none text-sm text-muted-foreground placeholder:text-muted-foreground/40"
-            placeholder="Title (e.g. VP of Engineering)"
+            placeholder={t("newAgent.titlePlaceholder", "头衔（例如：工程副总裁）")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -276,14 +278,14 @@ export function NewAgent() {
         <div className="border-t border-border px-4 py-4">
           <div className="space-y-3">
             <div>
-              <h2 className="text-sm font-medium">Company skills</h2>
+              <h2 className="text-sm font-medium">{t("newAgent.companySkills", "公司技能")}</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Optional skills from the company library. Built-in Paperclip runtime skills are added automatically.
+                {t("newAgent.companySkillsDesc", "来自公司库的可选技能。内置的 Paperclip 运行时技能会自动添加。")}
               </p>
             </div>
             {availableSkills.length === 0 ? (
               <p className="text-xs text-muted-foreground">
-                No optional company skills installed yet.
+                {t("newAgent.noOptionalSkills", "尚未安装可选公司技能。")}
               </p>
             ) : (
               <div className="space-y-3">
@@ -314,21 +316,21 @@ export function NewAgent() {
         {/* Footer */}
         <div className="border-t border-border px-4 py-3">
           {isFirstAgent && (
-            <p className="text-xs text-muted-foreground mb-2">This will be the CEO</p>
+            <p className="text-xs text-muted-foreground mb-2">{t("newAgent.willBeCeo", "这将是 CEO")}</p>
           )}
           {formError && (
             <p className="text-xs text-destructive mb-2">{formError}</p>
           )}
           <div className="flex items-center justify-end gap-2">
             <Button variant="outline" size="sm" onClick={() => navigate("/agents")}>
-              Cancel
+              {t("common.cancel", "取消")}
             </Button>
             <Button
               size="sm"
               disabled={!name.trim() || createAgent.isPending}
               onClick={handleSubmit}
             >
-              {createAgent.isPending ? "Creating…" : "Create agent"}
+              {createAgent.isPending ? t("newAgent.creating", "创建中…") : t("newAgent.createAgent", "创建智能体")}
             </Button>
           </div>
         </div>

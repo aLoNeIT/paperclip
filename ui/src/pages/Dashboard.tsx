@@ -204,7 +204,7 @@ export function Dashboard() {
             onClick={() => openOnboarding({ initialStep: 2, companyId: selectedCompanyId! })}
             className="text-sm font-medium text-amber-700 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100 underline underline-offset-2 shrink-0"
           >
-            {t("dashboard.createAgentHere", "在此创建")}
+            {t("actions.create", "创建")}
           </button>
         </div>
       )}

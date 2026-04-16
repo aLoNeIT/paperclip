@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { queryKeys } from "../lib/queryKeys";
 import { formatDateTime, relativeTime } from "../lib/utils";
+import { useTranslation } from "react-i18next";
 
 function asRecord(value: unknown): Record<string, unknown> | null {
   if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
@@ -29,14 +30,15 @@ function buildAgentHref(agent: InstanceSchedulerHeartbeatAgent) {
 export function InstanceSettings() {
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Instance Settings" },
-      { label: "Heartbeats" },
+      { label: t("instanceSettings.title", "实例设置") },
+      { label: t("instanceSettings.heartbeats", "心跳") },
     ]);
-  }, [setBreadcrumbs]);
+  }, [setBreadcrumbs, t]);
 
   const heartbeatsQuery = useQuery({
     queryKey: queryKeys.instance.schedulerHeartbeats,
@@ -73,7 +75,7 @@ export function InstanceSettings() {
       ]);
     },
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to update heartbeat.");
+      setActionError(error instanceof Error ? error.message : t("instanceSettings.failedToUpdate", "更新心跳失败。"));
     },
   });
 
@@ -126,7 +128,7 @@ export function InstanceSettings() {
       ]);
     },
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to disable all heartbeats.");
+      setActionError(error instanceof Error ? error.message : t("instanceSettings.failedToDisableAll", "禁用所有心跳失败。"));
     },
   });
 
@@ -150,7 +152,7 @@ export function InstanceSettings() {
   }, [agents]);
 
   if (heartbeatsQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading scheduler heartbeats...</div>;
+    return <div className="text-sm text-muted-foreground">{t("instanceSettings.loading", "正在加载调度器心跳...")}</div>;
   }
 
   if (heartbeatsQuery.error) {
@@ -158,7 +160,7 @@ export function InstanceSettings() {
       <div className="text-sm text-destructive">
         {heartbeatsQuery.error instanceof Error
           ? heartbeatsQuery.error.message
-          : "Failed to load scheduler heartbeats."}
+          : t("instanceSettings.failedToLoad", "加载调度器心跳失败。")}
       </div>
     );
   }
@@ -168,17 +170,17 @@ export function InstanceSettings() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Settings className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Scheduler Heartbeats</h1>
+          <h1 className="text-lg font-semibold">{t("instanceSettings.schedulerHeartbeats", "调度器心跳")}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Agents with a timer heartbeat enabled across all of your companies.
+          {t("instanceSettings.desc", "所有公司中启用了定时器心跳的智能体。")}
         </p>
       </div>
 
       <div className="flex items-center gap-4 text-sm text-muted-foreground">
-        <span><span className="font-semibold text-foreground">{activeCount}</span> active</span>
-        <span><span className="font-semibold text-foreground">{disabledCount}</span> disabled</span>
-        <span><span className="font-semibold text-foreground">{grouped.length}</span> {grouped.length === 1 ? "company" : "companies"}</span>
+        <span><span className="font-semibold text-foreground">{activeCount}</span> {t("instanceSettings.active", "活跃")}</span>
+        <span><span className="font-semibold text-foreground">{disabledCount}</span> {t("instanceSettings.disabled", "已禁用")}</span>
+        <span><span className="font-semibold text-foreground">{grouped.length}</span> {grouped.length === 1 ? t("instanceSettings.company", "公司") : t("instanceSettings.companies", "公司")}</span>
         {anyEnabled && (
           <Button
             variant="destructive"
@@ -186,14 +188,14 @@ export function InstanceSettings() {
             className="ml-auto h-7 text-xs"
             disabled={disableAllMutation.isPending}
             onClick={() => {
-              const noun = enabledCount === 1 ? "agent" : "agents";
-              if (!window.confirm(`Disable timer heartbeats for all ${enabledCount} enabled ${noun}?`)) {
+              const noun = enabledCount === 1 ? t("instanceSettings.agent", "智能体") : t("instanceSettings.agents", "智能体");
+              if (!window.confirm(t("instanceSettings.disableAllConfirm", "禁用所有 {{count}} 个已启用的{{noun}}的定时器心跳？", { count: enabledCount, noun }))) {
                 return;
               }
               disableAllMutation.mutate(agents);
             }}
           >
-            {disableAllMutation.isPending ? "Disabling..." : "Disable All"}
+            {disableAllMutation.isPending ? t("instanceSettings.disabling", "禁用中...") : t("instanceSettings.disableAll", "全部禁用")}
           </Button>
         )}
       </div>
@@ -207,7 +209,7 @@ export function InstanceSettings() {
       {agents.length === 0 ? (
         <EmptyState
           icon={Clock3}
-          message="No scheduler heartbeats match the current criteria."
+          message={t("instanceSettings.noHeartbeats", "没有调度器心跳符合当前条件。")}
         />
       ) : (
         <div className="space-y-4">
@@ -229,7 +231,7 @@ export function InstanceSettings() {
                           variant={agent.schedulerActive ? "default" : "outline"}
                           className="shrink-0 text-[10px] px-1.5 py-0"
                         >
-                          {agent.schedulerActive ? "On" : "Off"}
+                          {agent.schedulerActive ? t("instanceSettings.on", "开启") : t("instanceSettings.off", "关闭")}
                         </Badge>
                         <Link
                           to={buildAgentHref(agent)}
@@ -249,13 +251,13 @@ export function InstanceSettings() {
                         >
                           {agent.lastHeartbeatAt
                             ? relativeTime(agent.lastHeartbeatAt)
-                            : "never"}
+                            : t("instanceSettings.never", "从未")}
                         </span>
                         <span className="ml-auto flex items-center gap-1.5 shrink-0">
                           <Link
                             to={buildAgentHref(agent)}
                             className="text-muted-foreground hover:text-foreground"
-                            title="Full agent config"
+                            title={t("instanceSettings.fullAgentConfig", "完整智能体配置")}
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                           </Link>
@@ -266,7 +268,7 @@ export function InstanceSettings() {
                             disabled={saving}
                             onClick={() => toggleMutation.mutate(agent)}
                           >
-                            {saving ? "..." : agent.heartbeatEnabled ? "Disable Timer Heartbeat" : "Enable Timer Heartbeat"}
+                            {saving ? "..." : agent.heartbeatEnabled ? t("instanceSettings.disableHeartbeat", "禁用定时器心跳") : t("instanceSettings.enableHeartbeat", "启用定时器心跳")}
                           </Button>
                         </span>
                       </div>

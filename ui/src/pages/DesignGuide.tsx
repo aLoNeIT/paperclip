@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   BookOpen,
   Bot,
@@ -173,28 +174,29 @@ function Swatch({ name, cssVar }: { name: string; cssVar: string }) {
 /* ------------------------------------------------------------------ */
 
 export function DesignGuide() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState("todo");
   const [priority, setPriority] = useState("medium");
   const [selectValue, setSelectValue] = useState("in_progress");
   const [menuChecked, setMenuChecked] = useState(true);
   const [collapsibleOpen, setCollapsibleOpen] = useState(false);
-  const [inlineText, setInlineText] = useState("Click to edit this text");
-  const [inlineTitle, setInlineTitle] = useState("Editable Title");
+  const [inlineText, setInlineText] = useState(t("designGuide.clickToEdit", "点击编辑此文本"));
+  const [inlineTitle, setInlineTitle] = useState(t("designGuide.editableTitle", "可编辑标题"));
   const [inlineDesc, setInlineDesc] = useState(
-    "This is an editable description. Click to edit it — the textarea auto-sizes to fit the content without layout shift."
+    t("designGuide.editableDesc", "这是一个可编辑的描述。点击编辑它 — 文本区域会自动调整大小以适应内容而不产生布局偏移。")
   );
   const [filters, setFilters] = useState<FilterValue[]>([
-    { key: "status", label: "Status", value: "Active" },
-    { key: "priority", label: "Priority", value: "High" },
+    { key: "status", label: t("designGuide.status", "状态"), value: t("designGuide.active", "活跃") },
+    { key: "priority", label: t("designGuide.priority", "优先级"), value: t("designGuide.high", "高") },
   ]);
 
   return (
     <div className="space-y-10 max-w-4xl">
       {/* Page header */}
       <div>
-        <h2 className="text-xl font-bold">Design Guide</h2>
+        <h2 className="text-xl font-bold">{t("designGuide.title", "设计指南")}</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          Every component, style, and pattern used across Paperclip.
+          {t("designGuide.desc", "Paperclip 中使用的每个组件、样式和模式。")}
         </p>
       </div>
 

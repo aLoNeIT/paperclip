@@ -203,7 +203,7 @@ export function Agents() {
       </div>
 
       {filtered.length > 0 && (
-        <p className="text-xs text-muted-foreground">{filtered.length} agent{filtered.length !== 1 ? "s" : ""}</p>
+        <p className="text-xs text-muted-foreground">{filtered.length} {t("agents.title", "智能体")}</p>
       )}
 
       {error && <p className="text-sm text-destructive">{error.message}</p>}
@@ -248,24 +248,24 @@ export function Agents() {
                         <StatusBadge status={agent.status} />
                       )}
                     </span>
-                    <div className="hidden sm:flex items-center gap-3">
-                      {liveRunByAgent.has(agent.id) && (
-                        <LiveRunIndicator
-                          agentRef={agentRouteRef(agent)}
-                          runId={liveRunByAgent.get(agent.id)!.runId}
-                          liveCount={liveRunByAgent.get(agent.id)!.liveCount}
-                        />
-                      )}
-                      <span className="text-xs text-muted-foreground font-mono w-14 text-right">
-                        {getAdapterLabel(agent.adapterType)}
-                      </span>
-                      <span className="text-xs text-muted-foreground w-16 text-right">
-                        {agent.lastHeartbeatAt ? relativeTime(agent.lastHeartbeatAt) : "—"}
-                      </span>
-                      <span className="w-20 flex justify-end">
-                        <StatusBadge status={agent.status} />
-                      </span>
-                    </div>
+          <div className="hidden sm:flex items-center gap-3">
+            {liveRunByAgent.has(agent.id) && (
+              <LiveRunIndicator
+                agentRef={agentRouteRef(agent)}
+                runId={liveRunByAgent.get(agent.id)!.runId}
+                liveCount={liveRunByAgent.get(agent.id)!.liveCount}
+              />
+            )}
+            <span className="text-xs text-muted-foreground font-mono w-14 text-right">
+              {getAdapterLabel(agent.adapterType)}
+            </span>
+            <span className="text-xs text-muted-foreground w-16 text-right">
+              {agent.lastHeartbeatAt ? relativeTime(agent.lastHeartbeatAt) : t("common.never", "从未")}
+            </span>
+            <span className="w-20 flex justify-end">
+              <StatusBadge status={agent.status} />
+            </span>
+          </div>
                   </div>
                 }
               />
@@ -363,7 +363,7 @@ function OrgTreeNode({
                   {getAdapterLabel(agent.adapterType)}
                 </span>
                 <span className="text-xs text-muted-foreground w-16 text-right">
-                  {agent.lastHeartbeatAt ? relativeTime(agent.lastHeartbeatAt) : "—"}
+                  {agent.lastHeartbeatAt ? relativeTime(agent.lastHeartbeatAt) : t("common.never", "从未")}
                 </span>
               </>
             )}

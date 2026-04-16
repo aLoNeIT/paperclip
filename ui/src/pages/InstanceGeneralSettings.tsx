@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import type { PatchInstanceGeneralSettings, BackupRetentionPolicy } from "@paperclipai/shared";
 import {
   DAILY_RETENTION_PRESETS,
@@ -21,6 +22,7 @@ const FEEDBACK_TERMS_URL = import.meta.env.VITE_FEEDBACK_TERMS_URL?.trim() || "h
 export function InstanceGeneralSettings() {
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [actionError, setActionError] = useState<string | null>(null);
 
   const signOutMutation = useMutation({
@@ -29,16 +31,16 @@ export function InstanceGeneralSettings() {
       queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });
     },
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to sign out.");
+      setActionError(error instanceof Error ? error.message : t("instanceGeneralSettings.failedToSignOut", "登出失败。"));
     },
   });
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Instance Settings" },
-      { label: "General" },
+      { label: t("instanceSettings.title", "实例设置") },
+      { label: t("instanceGeneralSettings.general", "通用") },
     ]);
-  }, [setBreadcrumbs]);
+  }, [setBreadcrumbs, t]);
 
   const generalQuery = useQuery({
     queryKey: queryKeys.instance.generalSettings,
@@ -52,12 +54,12 @@ export function InstanceGeneralSettings() {
       await queryClient.invalidateQueries({ queryKey: queryKeys.instance.generalSettings });
     },
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to update general settings.");
+      setActionError(error instanceof Error ? error.message : t("instanceGeneralSettings.failedToUpdate", "更新通用设置失败。"));
     },
   });
 
   if (generalQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading general settings...</div>;
+    return <div className="text-sm text-muted-foreground">{t("instanceGeneralSettings.loading", "正在加载通用设置...")}</div>;
   }
 
   if (generalQuery.error) {
@@ -65,7 +67,7 @@ export function InstanceGeneralSettings() {
       <div className="text-sm text-destructive">
         {generalQuery.error instanceof Error
           ? generalQuery.error.message
-          : "Failed to load general settings."}
+          : t("instanceGeneralSettings.failedToLoad", "加载通用设置失败。")}
       </div>
     );
   }
@@ -80,10 +82,10 @@ export function InstanceGeneralSettings() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <SlidersHorizontal className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">General</h1>
+          <h1 className="text-lg font-semibold">{t("instanceGeneralSettings.general", "通用")}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Configure instance-wide defaults that affect how operator-visible logs are displayed.
+          {t("instanceGeneralSettings.desc", "配置影响操作员可见日志显示的实例级默认值。")}
         </p>
       </div>
 
@@ -96,18 +98,16 @@ export function InstanceGeneralSettings() {
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5">
-            <h2 className="text-sm font-semibold">Censor username in logs</h2>
+            <h2 className="text-sm font-semibold">{t("instanceGeneralSettings.censorUsername", "在日志中隐藏用户名")}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Hide the username segment in home-directory paths and similar operator-visible log output. Standalone
-              username mentions outside of paths are not yet masked in the live transcript view. This is off by
-              default.
+              {t("instanceGeneralSettings.censorUsernameDesc", "隐藏家目录路径和类似操作员可见日志输出中的用户名段。实时转录视图中路径外的独立用户名提及尚未被屏蔽。默认情况下此功能关闭。")}
             </p>
           </div>
           <ToggleSwitch
             checked={censorUsernameInLogs}
             onCheckedChange={() => updateGeneralMutation.mutate({ censorUsernameInLogs: !censorUsernameInLogs })}
             disabled={updateGeneralMutation.isPending}
-            aria-label="Toggle username log censoring"
+            aria-label={t("instanceGeneralSettings.censorUsername", "在日志中隐藏用户名")}
           />
         </div>
       </section>
@@ -115,17 +115,16 @@ export function InstanceGeneralSettings() {
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5">
-            <h2 className="text-sm font-semibold">Keyboard shortcuts</h2>
+            <h2 className="text-sm font-semibold">{t("instanceGeneralSettings.keyboardShortcuts", "键盘快捷键")}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Enable app keyboard shortcuts, including inbox navigation and global shortcuts like creating issues or
-              toggling panels. This is off by default.
+              {t("instanceGeneralSettings.keyboardShortcutsDesc", "启用应用键盘快捷键，包括收件箱导航和创建任务或切换面板等全局快捷键。默认情况下此功能关闭。")}
             </p>
           </div>
           <ToggleSwitch
             checked={keyboardShortcuts}
             onCheckedChange={() => updateGeneralMutation.mutate({ keyboardShortcuts: !keyboardShortcuts })}
             disabled={updateGeneralMutation.isPending}
-            aria-label="Toggle keyboard shortcuts"
+            aria-label={t("instanceGeneralSettings.keyboardShortcuts", "键盘快捷键")}
           />
         </div>
       </section>
@@ -133,16 +132,14 @@ export function InstanceGeneralSettings() {
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="space-y-5">
           <div className="space-y-1.5">
-            <h2 className="text-sm font-semibold">Backup retention</h2>
+            <h2 className="text-sm font-semibold">{t("instanceGeneralSettings.backupRetention", "备份保留")}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Configure how long to keep automatic database backups at each tier. Daily backups
-              are kept in full, then thinned to one per week and one per month. Backups are
-              compressed with gzip.
+              {t("instanceGeneralSettings.backupRetentionDesc", "配置每个层级保留自动数据库备份的时间。每日备份完整保留，然后精简为每周一份和每月一份。备份使用 gzip 压缩。")}
             </p>
           </div>
 
           <div className="space-y-1.5">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Daily</h3>
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("instanceGeneralSettings.daily", "每日")}</h3>
             <div className="flex flex-wrap gap-2">
               {DAILY_RETENTION_PRESETS.map((days) => {
                 const active = backupRetention.dailyDays === days;
@@ -163,7 +160,7 @@ export function InstanceGeneralSettings() {
                       })
                     }
                   >
-                    <div className="text-sm font-medium">{days} days</div>
+                    <div className="text-sm font-medium">{days} {t("instanceGeneralSettings.days", "天")}</div>
                   </button>
                 );
               })}
@@ -171,11 +168,11 @@ export function InstanceGeneralSettings() {
           </div>
 
           <div className="space-y-1.5">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Weekly</h3>
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("instanceGeneralSettings.weekly", "每周")}</h3>
             <div className="flex flex-wrap gap-2">
               {WEEKLY_RETENTION_PRESETS.map((weeks) => {
                 const active = backupRetention.weeklyWeeks === weeks;
-                const label = weeks === 1 ? "1 week" : `${weeks} weeks`;
+                const label = weeks === 1 ? `1 ${t("instanceGeneralSettings.week", "周")}` : `${weeks} ${t("instanceGeneralSettings.weeks", "周")}`;
                 return (
                   <button
                     key={weeks}
@@ -201,11 +198,11 @@ export function InstanceGeneralSettings() {
           </div>
 
           <div className="space-y-1.5">
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Monthly</h3>
+            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t("instanceGeneralSettings.monthly", "每月")}</h3>
             <div className="flex flex-wrap gap-2">
               {MONTHLY_RETENTION_PRESETS.map((months) => {
                 const active = backupRetention.monthlyMonths === months;
-                const label = months === 1 ? "1 month" : `${months} months`;
+                const label = months === 1 ? `1 ${t("instanceGeneralSettings.month", "个月")}` : `${months} ${t("instanceGeneralSettings.months", "个月")}`;
                 return (
                   <button
                     key={months}
@@ -235,10 +232,9 @@ export function InstanceGeneralSettings() {
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <h2 className="text-sm font-semibold">AI feedback sharing</h2>
+            <h2 className="text-sm font-semibold">{t("instanceGeneralSettings.aiFeedbackSharing", "AI 反馈共享")}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Control whether thumbs up and thumbs down votes can send the voted AI output to
-              Paperclip Labs. Votes are always saved locally.
+              {t("instanceGeneralSettings.aiFeedbackSharingDesc", "控制点赞和点踩投票是否可以将投票的 AI 输出发送到 Paperclip Labs。投票始终保存在本地。")}
             </p>
             {FEEDBACK_TERMS_URL ? (
               <a
@@ -247,27 +243,26 @@ export function InstanceGeneralSettings() {
                 rel="noreferrer"
                 className="inline-flex text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
               >
-                Read our terms of service
+                {t("instanceGeneralSettings.readTermsOfService", "阅读我们的服务条款")}
               </a>
             ) : null}
           </div>
           {feedbackDataSharingPreference === "prompt" ? (
             <div className="rounded-lg border border-border/70 bg-accent/20 px-3 py-2 text-sm text-muted-foreground">
-              No default is saved yet. The next thumbs up or thumbs down choice will ask once and
-              then save the answer here.
+              {t("instanceGeneralSettings.noDefaultSaved", "尚未保存默认值。下一个点赞或点踩选择将询问一次，然后将答案保存在此处。")}
             </div>
           ) : null}
           <div className="flex flex-wrap gap-2">
             {[
               {
                 value: "allowed",
-                label: "Always allow",
-                description: "Share voted AI outputs automatically.",
+                label: t("instanceGeneralSettings.alwaysAllow", "始终允许"),
+                description: t("instanceGeneralSettings.alwaysAllowDesc", "自动共享投票的 AI 输出。"),
               },
               {
                 value: "not_allowed",
-                label: "Don't allow",
-                description: "Keep voted AI outputs local only.",
+                label: t("instanceGeneralSettings.dontAllow", "不允许"),
+                description: t("instanceGeneralSettings.dontAllowDesc", "仅本地保存投票的 AI 输出。"),
               },
             ].map((option) => {
               const active = feedbackDataSharingPreference === option.value;
@@ -299,11 +294,9 @@ export function InstanceGeneralSettings() {
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            To retest the first-use prompt in local dev, remove the{" "}
-            <code>feedbackDataSharingPreference</code> key from the{" "}
-            <code>instance_settings.general</code> JSON row for this instance, or set it back to{" "}
-            <code>"prompt"</code>. Unset and <code>"prompt"</code> both mean no default has been
-            chosen yet.
+            {t("instanceGeneralSettings.retestPrompt", "要在本地开发中重新测试首次使用提示，请从此实例的")}
+            <code>instance_settings.general</code> JSON {t("instanceGeneralSettings.jsonRow", "行")}
+            {t("instanceGeneralSettings.removeKey", "中移除")} <code>feedbackDataSharingPreference</code> {t("instanceGeneralSettings.orSet", "键，或将其设置回")} <code>"prompt"</code>。{t("instanceGeneralSettings.unsetMeaning", "未设置和")} <code>"prompt"</code> {t("instanceGeneralSettings.bothMean", "都表示尚未选择默认值。")}
           </p>
         </div>
       </section>
@@ -311,9 +304,9 @@ export function InstanceGeneralSettings() {
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5">
-            <h2 className="text-sm font-semibold">Sign out</h2>
+            <h2 className="text-sm font-semibold">{t("instanceGeneralSettings.signOut", "登出")}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Sign out of this Paperclip instance. You will be redirected to the login page.
+              {t("instanceGeneralSettings.signOutDesc", "从此 Paperclip 实例登出。您将被重定向到登录页面。")}
             </p>
           </div>
           <Button
@@ -323,7 +316,7 @@ export function InstanceGeneralSettings() {
             onClick={() => signOutMutation.mutate()}
           >
             <LogOut className="size-4" />
-            {signOutMutation.isPending ? "Signing out..." : "Sign out"}
+            {signOutMutation.isPending ? t("instanceGeneralSettings.signingOut", "登出中...") : t("instanceGeneralSettings.signOut", "登出")}
           </Button>
         </div>
       </section>

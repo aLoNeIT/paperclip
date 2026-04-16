@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   Agent,
@@ -454,7 +455,7 @@ function generateReadmeFromSelection(
     lines.push("|-------|------|------------|");
     for (const agent of agents) {
       const roleLabel = ROLE_LABELS[agent.role] ?? agent.role;
-      const reportsTo = agent.reportsToSlug ?? "\u2014";
+      const reportsTo = agent.reportsToSlug ?? "—";
       lines.push(`| ${agent.name} | ${roleLabel} | ${reportsTo} |`);
     }
     lines.push("");
@@ -464,7 +465,7 @@ function generateReadmeFromSelection(
     lines.push("### Projects");
     lines.push("");
     for (const project of projects) {
-      const desc = project.description ? ` \u2014 ${project.description}` : "";
+      const desc = project.description ? ` — ${project.description}` : "";
       lines.push(`- **${project.name}**${desc}`);
     }
     lines.push("");
@@ -498,9 +499,10 @@ function ExportPreviewPane({
   allFiles: Record<string, CompanyPortabilityFileEntry>;
   onSkillClick?: (skill: string) => void;
 }) {
+  const { t } = useTranslation();
   if (!selectedFile || content === null) {
     return (
-      <EmptyState icon={Package} message="Select a file to preview its contents." />
+      <EmptyState icon={Package} message={t("companyExport.selectFileToPreview", "选择文件以预览其内容。")} />
     );
   }
 
@@ -546,7 +548,7 @@ function ExportPreviewPane({
           </pre>
         ) : (
           <div className="rounded-lg border border-border bg-accent/10 px-4 py-3 text-sm text-muted-foreground">
-            Binary asset preview is not available for this file type.
+            {t("companyExport.binaryPreviewUnavailable", "二进制文件预览不可用。")}
           </div>
         )}
       </div>
@@ -578,6 +580,7 @@ function expandAncestors(filePath: string): string[] {
 }
 
 export function CompanyExport() {
+  const { t } = useTranslation();
   const { selectedCompanyId, selectedCompany } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const { pushToast } = useToast();
@@ -672,10 +675,10 @@ export function CompanyExport() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Org Chart", href: "/org" },
-      { label: "Export" },
+      { label: t("org.title", "组织架构图"), href: "/org" },
+      { label: t("companyExport.title", "导出") },
     ]);
-  }, [setBreadcrumbs]);
+  }, [setBreadcrumbs, t]);
 
   const exportPreviewMutation = useMutation({
     mutationFn: () =>
@@ -719,8 +722,8 @@ export function CompanyExport() {
     onError: (err) => {
       pushToast({
         tone: "error",
-        title: "Export failed",
-        body: err instanceof Error ? err.message : "Failed to load export data.",
+        title: t("companyExport.exportFailed", "导出失败"),
+        body: err instanceof Error ? err.message : t("companyExport.failedToLoadExportData", "加载导出数据失败。"),
       });
     },
   });
@@ -737,15 +740,15 @@ export function CompanyExport() {
       downloadZip(result, resultCheckedFiles, result.files);
       pushToast({
         tone: "success",
-        title: "Export downloaded",
-        body: `${resultCheckedFiles.size} file${resultCheckedFiles.size === 1 ? "" : "s"} exported as ${result.rootPath}.zip`,
+        title: t("companyExport.exportDownloaded", "导出已下载"),
+        body: `${resultCheckedFiles.size} ${t("companyExport.files", "文件")} ${t("companyExport.exportedAs", "导出为")} ${result.rootPath}.zip`,
       });
     },
     onError: (err) => {
       pushToast({
         tone: "error",
-        title: "Export failed",
-        body: err instanceof Error ? err.message : "Failed to build export package.",
+        title: t("companyExport.exportFailed", "导出失败"),
+        body: err instanceof Error ? err.message : t("companyExport.failedToBuildExportPackage", "构建导出包失败。"),
       });
     },
   });
@@ -911,7 +914,7 @@ export function CompanyExport() {
   }
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Package} message="Select a company to export." />;
+    return <EmptyState icon={Package} message={t("companyExport.selectCompanyToExport", "选择公司以导出。")} />;
   }
 
   if (exportPreviewMutation.isPending && !exportData) {
@@ -919,7 +922,7 @@ export function CompanyExport() {
   }
 
   if (!exportData) {
-    return <EmptyState icon={Package} message="Loading export data..." />;
+    return <EmptyState icon={Package} message={t("companyExport.loadingExportData", "正在加载导出数据...")} />;
   }
 
   const previewContent = selectedFile
@@ -935,14 +938,14 @@ export function CompanyExport() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4 text-sm">
             <span className="font-medium">
-              {selectedCompany?.name ?? "Company"} export
+              {selectedCompany?.name ?? t("company.title", "公司")} {t("companyExport.export", "导出")}
             </span>
             <span className="text-muted-foreground">
-              {selectedCount} / {totalFiles} file{totalFiles === 1 ? "" : "s"} selected
+              {selectedCount} / {totalFiles} {t("companyExport.files", "文件")} {t("companyExport.selected", "已选")}
             </span>
             {warnings.length > 0 && (
               <span className="text-amber-500">
-                {warnings.length} warning{warnings.length === 1 ? "" : "s"}
+                {warnings.length} {t("companyExport.warnings", "警告")}
               </span>
             )}
           </div>
@@ -953,8 +956,8 @@ export function CompanyExport() {
           >
             <Download className="mr-1.5 h-3.5 w-3.5" />
             {downloadMutation.isPending
-              ? "Building export..."
-              : `Export ${selectedCount} file${selectedCount === 1 ? "" : "s"}`}
+              ? t("companyExport.buildingExport", "构建导出中...")
+              : t("companyExport.exportFiles", "导出 {{count}} 个文件", { count: selectedCount })}
           </Button>
         </div>
       </div>
@@ -972,7 +975,7 @@ export function CompanyExport() {
       <div className="grid h-[calc(100vh-12rem)] gap-0 xl:grid-cols-[19rem_minmax(0,1fr)]">
         <aside className="flex flex-col border-r border-border overflow-hidden">
           <div className="border-b border-border px-4 py-3 shrink-0">
-            <h2 className="text-base font-semibold">Package files</h2>
+            <h2 className="text-base font-semibold">{t("companyExport.packageFiles", "包文件")}</h2>
           </div>
           <div className="border-b border-border px-3 py-2 shrink-0">
             <div className="flex items-center gap-2 rounded-md border border-border px-2 py-1">
@@ -981,7 +984,7 @@ export function CompanyExport() {
                 type="text"
                 value={treeSearch}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search files..."
+                placeholder={t("companyExport.searchFiles", "搜索文件...")}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 data-page-search-target="true"
               />
@@ -1004,7 +1007,7 @@ export function CompanyExport() {
                   onClick={() => setTaskLimit((prev) => prev + TASKS_PAGE_SIZE)}
                   className="w-full rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/30 hover:text-foreground transition-colors"
                 >
-                  Show more issues ({visibleTaskChildren} of {totalTaskChildren})
+                  {t("companyExport.showMoreIssues", "显示更多任务 ({{visible}} / {{total}})", { visible: visibleTaskChildren, total: totalTaskChildren })}
                 </button>
               </div>
             )}

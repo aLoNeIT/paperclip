@@ -5,18 +5,20 @@ import { instanceSettingsApi } from "@/api/instanceSettings";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { queryKeys } from "../lib/queryKeys";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
+import { useTranslation } from "react-i18next";
 
 export function InstanceExperimentalSettings() {
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Instance Settings" },
-      { label: "Experimental" },
+      { label: t("instanceSettings.title", "实例设置") },
+      { label: t("instanceExperimentalSettings.experimental", "实验性") },
     ]);
-  }, [setBreadcrumbs]);
+  }, [setBreadcrumbs, t]);
 
   const experimentalQuery = useQuery({
     queryKey: queryKeys.instance.experimentalSettings,
@@ -34,12 +36,12 @@ export function InstanceExperimentalSettings() {
       ]);
     },
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to update experimental settings.");
+      setActionError(error instanceof Error ? error.message : t("instanceExperimentalSettings.failedToUpdate", "更新实验性设置失败。"));
     },
   });
 
   if (experimentalQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading experimental settings...</div>;
+    return <div className="text-sm text-muted-foreground">{t("instanceExperimentalSettings.loading", "正在加载实验性设置...")}</div>;
   }
 
   if (experimentalQuery.error) {
@@ -47,7 +49,7 @@ export function InstanceExperimentalSettings() {
       <div className="text-sm text-destructive">
         {experimentalQuery.error instanceof Error
           ? experimentalQuery.error.message
-          : "Failed to load experimental settings."}
+          : t("instanceExperimentalSettings.failedToLoad", "加载实验性设置失败。")}
       </div>
     );
   }
@@ -60,10 +62,10 @@ export function InstanceExperimentalSettings() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <FlaskConical className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Experimental</h1>
+          <h1 className="text-lg font-semibold">{t("instanceExperimentalSettings.experimental", "实验性")}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Opt into features that are still being evaluated before they become default behavior.
+          {t("instanceExperimentalSettings.desc", "选择在成为默认行为之前仍在评估中的功能。")}
         </p>
       </div>
 
@@ -76,17 +78,16 @@ export function InstanceExperimentalSettings() {
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5">
-            <h2 className="text-sm font-semibold">Enable Isolated Workspaces</h2>
+            <h2 className="text-sm font-semibold">{t("instanceExperimentalSettings.isolatedWorkspaces", "启用隔离工作区")}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Show execution workspace controls in project configuration and allow isolated workspace behavior for new
-              and existing issue runs.
+              {t("instanceExperimentalSettings.isolatedWorkspacesDesc", "在项目配置中显示执行工作区控件，并允许新任务和现有任务运行使用隔离工作区行为。")}
             </p>
           </div>
           <ToggleSwitch
             checked={enableIsolatedWorkspaces}
             onCheckedChange={() => toggleMutation.mutate({ enableIsolatedWorkspaces: !enableIsolatedWorkspaces })}
             disabled={toggleMutation.isPending}
-            aria-label="Toggle isolated workspaces experimental setting"
+            aria-label={t("instanceExperimentalSettings.isolatedWorkspaces", "启用隔离工作区")}
           />
         </div>
       </section>
@@ -94,17 +95,16 @@ export function InstanceExperimentalSettings() {
       <section className="rounded-xl border border-border bg-card p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5">
-            <h2 className="text-sm font-semibold">Auto-Restart Dev Server When Idle</h2>
+            <h2 className="text-sm font-semibold">{t("instanceExperimentalSettings.autoRestartDevServer", "空闲时自动重启开发服务器")}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              In `pnpm dev:once`, wait for all queued and running local agent runs to finish, then restart the server
-              automatically when backend changes or migrations make the current boot stale.
+              {t("instanceExperimentalSettings.autoRestartDevServerDesc", "在 `pnpm dev:once` 中，等待所有排队和运行的本地智能体运行完成，然后在后端更改或迁移使当前启动过时时自动重启服务器。")}
             </p>
           </div>
           <ToggleSwitch
             checked={autoRestartDevServerWhenIdle}
             onCheckedChange={() => toggleMutation.mutate({ autoRestartDevServerWhenIdle: !autoRestartDevServerWhenIdle })}
             disabled={toggleMutation.isPending}
-            aria-label="Toggle guarded dev-server auto-restart"
+            aria-label={t("instanceExperimentalSettings.autoRestartDevServer", "空闲时自动重启开发服务器")}
           />
         </div>
       </section>

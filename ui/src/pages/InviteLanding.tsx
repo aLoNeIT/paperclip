@@ -8,6 +8,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { AGENT_ADAPTER_TYPES } from "@paperclipai/shared";
 import type { AgentAdapterType, JoinRequest } from "@paperclipai/shared";
+import { useTranslation } from "react-i18next";
 
 type JoinType = "human" | "agent";
 const joinAdapterOptions: AgentAdapterType[] = [...AGENT_ADAPTER_TYPES];
@@ -16,7 +17,7 @@ import { getAdapterLabel } from "../adapters/adapter-display-registry";
 
 const ENABLED_INVITE_ADAPTERS = new Set(["claude_local", "codex_local", "gemini_local", "opencode_local", "pi_local", "cursor"]);
 
-function dateTime(value: string) {
+function dateTime(value: string, t: (key: string, fallback: string) => string) {
   return new Date(value).toLocaleString();
 }
 
@@ -33,6 +34,7 @@ export function InviteLandingPage() {
   const queryClient = useQueryClient();
   const params = useParams();
   const token = (params.token ?? "").trim();
+  const { t } = useTranslation();
   const [joinType, setJoinType] = useState<JoinType>("human");
   const [agentName, setAgentName] = useState("");
   const [adapterType, setAdapterType] = useState<AgentAdapterType>("claude_local");
@@ -102,25 +104,25 @@ export function InviteLandingPage() {
       setResult({ kind: asBootstrap ? "bootstrap" : "join", payload });
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Failed to accept invite");
+      setError(err instanceof Error ? err.message : t("inviteLanding.failedToAccept", "接受邀请失败"));
     },
   });
 
   if (!token) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">Invalid invite token.</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-destructive">{t("inviteLanding.invalidToken", "无效的邀请令牌。")}</div>;
   }
 
   if (inviteQuery.isLoading || healthQuery.isLoading || sessionQuery.isLoading) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading invite...</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("inviteLanding.loading", "正在加载邀请...")}</div>;
   }
 
   if (inviteQuery.error || !invite) {
     return (
       <div className="mx-auto max-w-xl py-10">
         <div className="rounded-lg border border-border bg-card p-6">
-          <h1 className="text-lg font-semibold">Invite not available</h1>
+          <h1 className="text-lg font-semibold">{t("inviteLanding.notAvailable", "邀请不可用")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            This invite may be expired, revoked, or already used.
+            {t("inviteLanding.notAvailableDesc", "此邀请可能已过期、被撤销或已使用。")}
           </p>
         </div>
       </div>
@@ -131,12 +133,12 @@ export function InviteLandingPage() {
     return (
       <div className="mx-auto max-w-xl py-10">
         <div className="rounded-lg border border-border bg-card p-6">
-          <h1 className="text-lg font-semibold">Bootstrap complete</h1>
+          <h1 className="text-lg font-semibold">{t("inviteLanding.bootstrapComplete", "Bootstrap 完成")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            The first instance admin is now configured. You can continue to the board.
+            {t("inviteLanding.bootstrapCompleteDesc", "第一个实例管理员现已配置。您可以继续前往董事会。")}
           </p>
           <Button asChild className="mt-4">
-            <Link to="/">Open board</Link>
+            <Link to="/">{t("inviteLanding.openBoard", "打开董事会")}</Link>
           </Button>
         </div>
       </div>
@@ -166,23 +168,23 @@ export function InviteLandingPage() {
     return (
       <div className="mx-auto max-w-xl py-10">
         <div className="rounded-lg border border-border bg-card p-6">
-          <h1 className="text-lg font-semibold">Join request submitted</h1>
+          <h1 className="text-lg font-semibold">{t("inviteLanding.joinSubmitted", "加入请求已提交")}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Your request is pending admin approval. You will not have access until approved.
+            {t("inviteLanding.joinSubmittedDesc", "您的请求正在等待管理员批准。在批准之前您将无法访问。")}
           </p>
           <div className="mt-4 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
             Request ID: <span className="font-mono">{payload.id}</span>
           </div>
           {claimSecret && claimApiKeyPath && (
             <div className="mt-3 space-y-1 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-              <p className="font-medium text-foreground">One-time claim secret (save now)</p>
+              <p className="font-medium text-foreground">{t("inviteLanding.claimSecret", "一次性申领密钥（立即保存）")}</p>
               <p className="font-mono break-all">{claimSecret}</p>
               <p className="font-mono break-all">POST {claimApiKeyPath}</p>
             </div>
           )}
           {(onboardingSkillUrl || onboardingSkillPath || onboardingInstallPath) && (
             <div className="mt-3 space-y-1 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-              <p className="font-medium text-foreground">Paperclip skill bootstrap</p>
+              <p className="font-medium text-foreground">{t("inviteLanding.skillBootstrap", "Paperclip 技能引导")}</p>
               {onboardingSkillUrl && <p className="font-mono break-all">GET {onboardingSkillUrl}</p>}
               {!onboardingSkillUrl && onboardingSkillPath && <p className="font-mono break-all">GET {onboardingSkillPath}</p>}
               {onboardingInstallPath && <p className="font-mono break-all">Install to {onboardingInstallPath}</p>}
@@ -190,14 +192,14 @@ export function InviteLandingPage() {
           )}
           {(onboardingTextUrl || onboardingTextPath) && (
             <div className="mt-3 space-y-1 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-              <p className="font-medium text-foreground">Agent-readable onboarding text</p>
+              <p className="font-medium text-foreground">{t("inviteLanding.onboardingText", "智能体可读的引导文本")}</p>
               {onboardingTextUrl && <p className="font-mono break-all">GET {onboardingTextUrl}</p>}
               {!onboardingTextUrl && onboardingTextPath && <p className="font-mono break-all">GET {onboardingTextPath}</p>}
             </div>
           )}
           {diagnostics.length > 0 && (
             <div className="mt-3 space-y-1 rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-              <p className="font-medium text-foreground">Connectivity diagnostics</p>
+              <p className="font-medium text-foreground">{t("inviteLanding.diagnostics", "连接诊断")}</p>
               {diagnostics.map((diag, idx) => (
                 <div key={`${diag.code}:${idx}`} className="space-y-0.5">
                   <p className={diag.level === "warn" ? "text-amber-600 dark:text-amber-400" : undefined}>
@@ -218,16 +220,16 @@ export function InviteLandingPage() {
       <div className="rounded-lg border border-border bg-card p-6">
         <h1 className="text-xl font-semibold">
           {invite.inviteType === "bootstrap_ceo"
-            ? "Bootstrap your Paperclip instance"
+            ? t("inviteLanding.bootstrap", "Bootstrap 您的 Paperclip 实例")
             : companyName
-              ? `Join ${companyName}`
-              : "Join this Paperclip company"}
+              ? t("inviteLanding.joinCompany", "加入 {{companyName}}", { companyName })
+              : t("inviteLanding.join", "加入此 Paperclip 公司")}
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           {invite.inviteType !== "bootstrap_ceo" && companyName
-            ? `You were invited to join ${companyName}. `
+            ? t("inviteLanding.invitedToJoin", "您被邀请加入 {{companyName}}。", { companyName })
             : null}
-          Invite expires {dateTime(invite.expiresAt)}.
+          {t("inviteLanding.expires", "邀请过期时间")} {dateTime(invite.expiresAt, t)}。
         </p>
 
         {invite.inviteType !== "bootstrap_ceo" && (
@@ -243,7 +245,7 @@ export function InviteLandingPage() {
                     : "border-border bg-background text-foreground"
                 }`}
               >
-                Join as {type}
+                {t("inviteLanding.joinAs", "以 {{type}} 身份加入", { type: type === "human" ? t("inviteLanding.human", "人类") : t("inviteLanding.agent", "智能体") })}
               </button>
             ))}
           </div>
@@ -252,7 +254,7 @@ export function InviteLandingPage() {
         {joinType === "agent" && invite.inviteType !== "bootstrap_ceo" && (
           <div className="mt-4 space-y-3">
             <label className="block text-sm">
-              <span className="mb-1 block text-muted-foreground">Agent name</span>
+              <span className="mb-1 block text-muted-foreground">{t("inviteLanding.agentName", "智能体名称")}</span>
               <input
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 value={agentName}
@@ -260,7 +262,7 @@ export function InviteLandingPage() {
               />
             </label>
             <label className="block text-sm">
-              <span className="mb-1 block text-muted-foreground">Adapter type</span>
+              <span className="mb-1 block text-muted-foreground">{t("inviteLanding.adapterType", "适配器类型")}</span>
               <select
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 value={adapterType}
@@ -268,13 +270,13 @@ export function InviteLandingPage() {
               >
                 {joinAdapterOptions.map((type) => (
                   <option key={type} value={type} disabled={!ENABLED_INVITE_ADAPTERS.has(type)}>
-                    {getAdapterLabel(type)}{!ENABLED_INVITE_ADAPTERS.has(type) ? " (Coming soon)" : ""}
+                    {getAdapterLabel(type)}{!ENABLED_INVITE_ADAPTERS.has(type) ? t("inviteLanding.comingSoon", "（即将推出）") : ""}
                   </option>
                 ))}
               </select>
             </label>
             <label className="block text-sm">
-              <span className="mb-1 block text-muted-foreground">Capabilities (optional)</span>
+              <span className="mb-1 block text-muted-foreground">{t("inviteLanding.capabilities", "能力（可选）")}</span>
               <textarea
                 className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 rows={4}
@@ -287,10 +289,10 @@ export function InviteLandingPage() {
 
         {requiresAuthForHuman && (
           <div className="mt-4 rounded-md border border-border bg-muted/30 p-3 text-sm">
-            Sign in or create an account before submitting a human join request.
+            {t("inviteLanding.authRequired", "在提交人类加入请求之前请登录或创建账号。")}
             <div className="mt-2">
               <Button asChild size="sm" variant="outline">
-                <Link to={`/auth?next=${encodeURIComponent(`/invite/${token}`)}`}>Sign in / Create account</Link>
+                <Link to={`/auth?next=${encodeURIComponent(`/invite/${token}`)}`}>{t("inviteLanding.signInOrCreate", "登录 / 创建账号")}</Link>
               </Button>
             </div>
           </div>
@@ -308,10 +310,10 @@ export function InviteLandingPage() {
           onClick={() => acceptMutation.mutate()}
         >
           {acceptMutation.isPending
-            ? "Submitting…"
+            ? t("inviteLanding.submitting", "提交中...")
             : invite.inviteType === "bootstrap_ceo"
-              ? "Accept bootstrap invite"
-              : "Submit join request"}
+              ? t("inviteLanding.acceptBootstrap", "接受 bootstrap 邀请")
+              : t("inviteLanding.submitJoin", "提交加入请求")}
         </Button>
       </div>
     </div>

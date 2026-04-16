@@ -127,7 +127,7 @@ export function Approvals() {
               detailLink={`/approvals/${approval.id}`}
               isPending={approveMutation.isPending || rejectMutation.isPending}
               pendingAction={
-                approveMutation.isPending ? "approve" : rejectMutation.isPending ? "reject" : null
+                approveMutation.isPending ? t("actions.approve", "批准") : rejectMutation.isPending ? t("actions.reject", "拒绝") : null
               }
             />
           ))}

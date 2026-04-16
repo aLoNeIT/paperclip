@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useNavigate, useParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { isUuidLike, type ProjectWorkspace } from "@paperclipai/shared";
@@ -32,15 +33,15 @@ type ProjectWorkspaceSourceType = ProjectWorkspace["sourceType"];
 type ProjectWorkspaceVisibility = ProjectWorkspace["visibility"];
 
 const SOURCE_TYPE_OPTIONS: Array<{ value: ProjectWorkspaceSourceType; label: string; description: string }> = [
-  { value: "local_path", label: "Local git checkout", description: "A local path Paperclip can use directly." },
-  { value: "non_git_path", label: "Local non-git path", description: "A local folder without git semantics." },
-  { value: "git_repo", label: "Remote git repo", description: "A repo URL with optional refs and local checkout." },
-  { value: "remote_managed", label: "Remote-managed workspace", description: "A hosted workspace tracked by external reference." },
+  { value: "local_path", label: "本地 git 检出", description: "Paperclip 可以直接使用的本地路径。" },
+  { value: "non_git_path", label: "本地非 git 路径", description: "没有 git 语义的本地文件夹。" },
+  { value: "git_repo", label: "远程 git 仓库", description: "带有可选引用和本地检出的仓库 URL。" },
+  { value: "remote_managed", label: "远程管理工作区", description: "通过外部引用跟踪的托管工作区。" },
 ];
 
 const VISIBILITY_OPTIONS: Array<{ value: ProjectWorkspaceVisibility; label: string }> = [
-  { value: "default", label: "Default" },
-  { value: "advanced", label: "Advanced" },
+  { value: "default", label: "默认" },
+  { value: "advanced", label: "高级" },
 ];
 
 function isSafeExternalUrl(value: string | null | undefined) {
@@ -102,14 +103,14 @@ function parseRuntimeConfigJson(value: string) {
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       return {
         ok: false as const,
-        error: "Runtime services JSON must be a JSON object.",
+        error: "运行服务 JSON 必须是 JSON 对象。",
       };
     }
     return { ok: true as const, value: parsed as Record<string, unknown> };
   } catch (error) {
     return {
       ok: false as const,
-      error: error instanceof Error ? error.message : "Invalid JSON.",
+      error: error instanceof Error ? error.message : "无效的 JSON。",
     };
   }
 }
@@ -153,21 +154,21 @@ function validateWorkspaceForm(form: WorkspaceFormState) {
 
   if (form.sourceType === "remote_managed") {
     if (!remoteWorkspaceRef && !repoUrl) {
-      return "Remote-managed workspaces require a remote workspace ref or repo URL.";
+      return "远程管理工作区需要远程工作区引用或仓库 URL。";
     }
   } else if (!cwd && !repoUrl) {
-    return "Workspace requires at least one local path or repo URL.";
+    return "工作区需要至少一个本地路径或仓库 URL。";
   }
 
   if (cwd && (form.sourceType === "local_path" || form.sourceType === "non_git_path") && !isAbsolutePath(cwd)) {
-    return "Local workspace path must be absolute.";
+    return "本地工作区路径必须是绝对路径。";
   }
 
   if (repoUrl) {
     try {
       new URL(repoUrl);
     } catch {
-      return "Repo URL must be a valid URL.";
+      return "仓库 URL 必须是有效的 URL。";
     }
   }
 
@@ -209,6 +210,7 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 }
 
 export function ProjectWorkspaceDetail() {
+  const { t } = useTranslation();
   const { companyPrefix, projectId, workspaceId } = useParams<{
     companyPrefix?: string;
     projectId: string;
@@ -261,12 +263,12 @@ export function ProjectWorkspaceDetail() {
   useEffect(() => {
     if (!project) return;
     setBreadcrumbs([
-      { label: "Projects", href: "/projects" },
+      { label: t("projects.title", "项目"), href: "/projects" },
       { label: project.name, href: `/projects/${canonicalProjectRef}` },
-      { label: "Workspaces", href: `/projects/${canonicalProjectRef}/workspaces` },
+      { label: t("projectWorkspace.workspaces", "工作区"), href: `/projects/${canonicalProjectRef}/workspaces` },
       { label: workspace?.name ?? routeWorkspaceId },
     ]);
-  }, [setBreadcrumbs, project, canonicalProjectRef, workspace?.name, routeWorkspaceId]);
+  }, [setBreadcrumbs, project, canonicalProjectRef, workspace?.name, routeWorkspaceId, t]);
 
   useEffect(() => {
     if (!project) return;
@@ -291,7 +293,7 @@ export function ProjectWorkspaceDetail() {
       setErrorMessage(null);
     },
     onError: (error) => {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to save workspace.");
+      setErrorMessage(error instanceof Error ? error.message : t("errorsFull.failedToSaveWorkspace", "保存工作区失败"));
     },
   });
 
@@ -302,7 +304,7 @@ export function ProjectWorkspaceDetail() {
       setErrorMessage(null);
     },
     onError: (error) => {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to update workspace.");
+      setErrorMessage(error instanceof Error ? error.message : t("errorsFull.failedToUpdateWorkspace", "更新工作区失败"));
     },
   });
 
@@ -314,28 +316,28 @@ export function ProjectWorkspaceDetail() {
       setErrorMessage(null);
       setRuntimeActionMessage(
         action === "stop"
-          ? "Runtime services stopped."
+          ? t("projectWorkspace.runtimeServicesStopped", "运行服务已停止")
           : action === "restart"
-            ? "Runtime services restarted."
-            : "Runtime services started.",
+            ? t("projectWorkspace.runtimeServicesRestarted", "运行服务已重启")
+            : t("projectWorkspace.runtimeServicesStarted", "运行服务已启动"),
       );
     },
     onError: (error) => {
       setRuntimeActionMessage(null);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to control runtime services.");
+      setErrorMessage(error instanceof Error ? error.message : t("errorsFull.failedToControlRuntimeServices", "控制运行服务失败"));
     },
   });
 
-  if (projectQuery.isLoading) return <p className="text-sm text-muted-foreground">Loading workspace…</p>;
+  if (projectQuery.isLoading) return <p className="text-sm text-muted-foreground">{t("states.loadingWorkspace", "正在加载工作区...")}</p>;
   if (projectQuery.error) {
     return (
       <p className="text-sm text-destructive">
-        {projectQuery.error instanceof Error ? projectQuery.error.message : "Failed to load workspace"}
+        {projectQuery.error instanceof Error ? projectQuery.error.message : t("errorsFull.failedToLoadWorkspace", "加载工作区失败")}
       </p>
     );
   }
   if (!project || !workspace || !form || !initialState) {
-    return <p className="text-sm text-muted-foreground">Workspace not found for this project.</p>;
+    return <p className="text-sm text-muted-foreground">{t("projectWorkspace.notFound", "未找到此项目的工作区")}</p>;
   }
 
   const saveChanges = () => {
@@ -357,11 +359,11 @@ export function ProjectWorkspaceDetail() {
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/projects/${canonicalProjectRef}/workspaces`}>
             <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to workspaces
+            {t("projectWorkspace.backToWorkspaces", "返回工作区")}
           </Link>
         </Button>
         <div className="inline-flex items-center rounded-full border border-border bg-background px-2.5 py-1 text-xs text-muted-foreground">
-          {workspace.isPrimary ? "Primary workspace" : "Secondary workspace"}
+          {workspace.isPrimary ? t("projectWorkspace.primaryWorkspace", "主工作区") : t("projectWorkspace.secondaryWorkspace", "次要工作区")}
         </div>
       </div>
 
@@ -371,13 +373,11 @@ export function ProjectWorkspaceDetail() {
             <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
               <div className="space-y-2">
                 <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-                  Project workspace
+                  {t("projectWorkspace.projectWorkspace", "项目工作区")}
                 </div>
                 <h1 className="text-2xl font-semibold">{workspace.name}</h1>
                 <p className="max-w-2xl text-sm text-muted-foreground">
-                  Configure the concrete workspace Paperclip attaches to this project. These values drive per-workspace
-                  checkout behavior, default runtime services for child execution workspaces, and let you override setup
-                  or cleanup commands when one workspace needs special handling.
+                  {t("projectWorkspace.description", "配置 Paperclip 附加到此项目的具体工作区。这些值驱动每个工作区的检出行为、子执行工作区的默认运行服务，并允许您在某个工作区需要特殊处理时覆盖配置或清理命令。")}
                 </p>
               </div>
               {!workspace.isPrimary ? (
@@ -390,12 +390,12 @@ export function ProjectWorkspaceDetail() {
                   {setPrimaryWorkspace.isPending
                     ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     : <Check className="mr-2 h-4 w-4" />}
-                  Make primary
+                  {t("projectWorkspace.makePrimary", "设为主工作区")}
                 </Button>
               ) : (
                 <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300 sm:max-w-sm">
                   <Sparkles className="h-4 w-4" />
-                  This is the project’s primary codebase workspace.
+                  {t("projectWorkspace.primaryCodebaseWorkspace", "这是项目的主代码库工作区。")}
                 </div>
               )}
             </div>
@@ -403,16 +403,16 @@ export function ProjectWorkspaceDetail() {
             <Separator className="my-5" />
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Workspace name">
+              <Field label={t("projectWorkspace.workspaceName", "工作区名称")}>
                 <input
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                   value={form.name}
                   onChange={(event) => setForm((current) => current ? { ...current, name: event.target.value } : current)}
-                  placeholder="Workspace name"
+                  placeholder={t("projectWorkspace.workspaceNamePlaceholder", "工作区名称")}
                 />
               </Field>
 
-              <Field label="Visibility">
+              <Field label={t("projectWorkspace.visibility", "可见性")}>
                 <select
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                   value={form.visibility}
@@ -428,7 +428,7 @@ export function ProjectWorkspaceDetail() {
             </div>
 
             <div className="mt-4 grid gap-4">
-              <Field label="Source type" hint={sourceTypeDescription ?? undefined}>
+              <Field label={t("projectWorkspace.sourceType", "来源类型")} hint={sourceTypeDescription ?? undefined}>
                 <select
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                   value={form.sourceType}
@@ -443,7 +443,7 @@ export function ProjectWorkspaceDetail() {
               </Field>
 
               <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
-                <Field label="Local path">
+                <Field label={t("projectWorkspace.localPath", "本地路径")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.cwd}
@@ -457,7 +457,7 @@ export function ProjectWorkspaceDetail() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Repo URL">
+                <Field label={t("projectWorkspace.repoUrl", "仓库 URL")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                     value={form.repoUrl}
@@ -465,7 +465,7 @@ export function ProjectWorkspaceDetail() {
                     placeholder="https://github.com/org/repo"
                   />
                 </Field>
-                <Field label="Repo ref">
+                <Field label={t("projectWorkspace.repoRef", "仓库引用")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.repoRef}
@@ -476,7 +476,7 @@ export function ProjectWorkspaceDetail() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Default ref">
+                <Field label={t("projectWorkspace.defaultRef", "默认引用")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.defaultRef}
@@ -484,7 +484,7 @@ export function ProjectWorkspaceDetail() {
                     placeholder="origin/main"
                   />
                 </Field>
-                <Field label="Shared workspace key">
+                <Field label={t("projectWorkspace.sharedWorkspaceKey", "共享工作区键")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.sharedWorkspaceKey}
@@ -495,7 +495,7 @@ export function ProjectWorkspaceDetail() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Remote provider">
+                <Field label={t("projectWorkspace.remoteProvider", "远程提供商")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                     value={form.remoteProvider}
@@ -503,7 +503,7 @@ export function ProjectWorkspaceDetail() {
                     placeholder="codespaces"
                   />
                 </Field>
-                <Field label="Remote workspace ref">
+                <Field label={t("projectWorkspace.remoteWorkspaceRef", "远程工作区引用")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.remoteWorkspaceRef}
@@ -514,7 +514,7 @@ export function ProjectWorkspaceDetail() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Setup command" hint="Runs when this workspace needs custom bootstrap">
+                <Field label={t("projectWorkspace.setupCommand", "配置命令")} hint={t("projectWorkspace.setupCommandHint", "当此工作区需要自定义引导时运行")}>
                   <textarea
                     className="min-h-28 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.setupCommand}
@@ -522,7 +522,7 @@ export function ProjectWorkspaceDetail() {
                     placeholder="pnpm install && pnpm dev"
                   />
                 </Field>
-                <Field label="Cleanup command" hint="Runs before project-level execution workspace teardown">
+                <Field label={t("projectWorkspace.cleanupCommand", "清理命令")} hint={t("projectWorkspace.cleanupCommandHint", "在项目级执行工作区拆除之前运行")}>
                   <textarea
                     className="min-h-28 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.cleanupCommand}
@@ -532,7 +532,7 @@ export function ProjectWorkspaceDetail() {
                 </Field>
               </div>
 
-              <Field label="Runtime services JSON" hint="Default runtime services for this workspace. Execution workspaces inherit this config unless they set an override. If you do not know the commands yet, ask your CEO to configure them for you.">
+              <Field label={t("projectWorkspace.runtimeServicesJson", "运行服务 JSON")} hint={t("projectWorkspace.runtimeServicesJsonHint", "此工作区的默认运行服务。执行工作区继承此配置，除非它们设置覆盖。如果您还不知道命令，请让您的 CEO 为您配置它们。")}>
                 <textarea
                   className="min-h-36 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                   value={form.runtimeConfig}
@@ -545,7 +545,7 @@ export function ProjectWorkspaceDetail() {
             <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Button className="w-full sm:w-auto" disabled={!isDirty || updateWorkspace.isPending} onClick={saveChanges}>
                 {updateWorkspace.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Save changes
+                {t("actions.save", "保存")}
               </Button>
               <Button
                 variant="outline"
@@ -556,11 +556,11 @@ export function ProjectWorkspaceDetail() {
                   setErrorMessage(null);
                 }}
               >
-                Reset
+                {t("actions.reset", "重置")}
               </Button>
               {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
               {!errorMessage && runtimeActionMessage ? <p className="text-sm text-muted-foreground">{runtimeActionMessage}</p> : null}
-              {!errorMessage && !isDirty ? <p className="text-sm text-muted-foreground">No unsaved changes.</p> : null}
+              {!errorMessage && !isDirty ? <p className="text-sm text-muted-foreground">{t("emptyState.noUnsavedChanges", "无未保存的更改")}</p> : null}
             </div>
           </div>
         </div>
@@ -568,20 +568,20 @@ export function ProjectWorkspaceDetail() {
         <div className="space-y-6">
           <div className="rounded-2xl border border-border bg-card p-5">
             <div className="space-y-1">
-              <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Workspace facts</div>
-              <h2 className="text-lg font-semibold">Current state</h2>
+              <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">{t("projectWorkspace.workspaceFacts", "工作区事实")}</div>
+              <h2 className="text-lg font-semibold">{t("projectWorkspace.currentState", "当前状态")}</h2>
             </div>
             <Separator className="my-4" />
-            <DetailRow label="Project">
+            <DetailRow label={t("projects.title", "项目")}>
               <Link to={`/projects/${canonicalProjectRef}`} className="hover:underline">{project.name}</Link>
             </DetailRow>
-            <DetailRow label="Workspace ID">
+            <DetailRow label={t("projectWorkspace.workspaceId", "工作区 ID")}>
               <span className="break-all font-mono text-xs">{workspace.id}</span>
             </DetailRow>
-            <DetailRow label="Local path">
-              <span className="break-all font-mono text-xs">{workspace.cwd ?? "None"}</span>
+            <DetailRow label={t("projectWorkspace.localPath", "本地路径")}>
+              <span className="break-all font-mono text-xs">{workspace.cwd ?? t("projectWorkspace.none", "无")}</span>
             </DetailRow>
-            <DetailRow label="Repo">
+            <DetailRow label={t("projectWorkspace.repo", "仓库")}>
               {workspace.repoUrl && isSafeExternalUrl(workspace.repoUrl) ? (
                 <a href={workspace.repoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:underline">
                   {workspace.repoUrl}
@@ -589,19 +589,19 @@ export function ProjectWorkspaceDetail() {
                 </a>
               ) : workspace.repoUrl ? (
                 <span className="break-all font-mono text-xs">{workspace.repoUrl}</span>
-              ) : "None"}
+              ) : t("projectWorkspace.none", "无")}
             </DetailRow>
-            <DetailRow label="Default ref">{workspace.defaultRef ?? "None"}</DetailRow>
-            <DetailRow label="Updated">{new Date(workspace.updatedAt).toLocaleString()}</DetailRow>
+            <DetailRow label={t("projectWorkspace.defaultRef", "默认引用")}>{workspace.defaultRef ?? t("projectWorkspace.none", "无")}</DetailRow>
+            <DetailRow label={t("projectWorkspace.updated", "更新于")}>{new Date(workspace.updatedAt).toLocaleString()}</DetailRow>
           </div>
 
           <div className="rounded-2xl border border-border bg-card p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
-                <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Runtime services</div>
-                <h2 className="text-lg font-semibold">Attached services</h2>
+                <div className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">{t("projectWorkspace.runtimeServices", "运行服务")}</div>
+                <h2 className="text-lg font-semibold">{t("projectWorkspace.attachedServices", "附加服务")}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Shared services for this project workspace. Execution workspaces inherit this config unless they override it.
+                  {t("projectWorkspace.attachedServicesDesc", "此项目工作区的共享服务。执行工作区继承此配置，除非它们覆盖它。")}
                 </p>
               </div>
               <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
@@ -613,7 +613,7 @@ export function ProjectWorkspaceDetail() {
                   onClick={() => controlRuntimeServices.mutate("start")}
                 >
                   {controlRuntimeServices.isPending ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
-                  Start
+                  {t("actions.start", "启动")}
                 </Button>
                 <Button
                   variant="outline"
@@ -622,7 +622,8 @@ export function ProjectWorkspaceDetail() {
                   disabled={controlRuntimeServices.isPending || !workspace.cwd}
                   onClick={() => controlRuntimeServices.mutate("restart")}
                 >
-                  Restart
+                  {controlRuntimeServices.isPending ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                  {t("actions.restart", "重启")}
                 </Button>
                 <Button
                   variant="outline"
@@ -631,7 +632,8 @@ export function ProjectWorkspaceDetail() {
                   disabled={controlRuntimeServices.isPending || !hasActiveRuntimeServices(workspace)}
                   onClick={() => controlRuntimeServices.mutate("stop")}
                 >
-                  Stop
+                  {controlRuntimeServices.isPending ? <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" /> : null}
+                  {t("actions.stop", "停止")}
                 </Button>
               </div>
             </div>
@@ -650,8 +652,8 @@ export function ProjectWorkspaceDetail() {
                               <ExternalLink className="h-3 w-3" />
                             </a>
                           ) : null}
-                          {service.port ? <div>Port {service.port}</div> : null}
-                          <div>{service.command ?? "No command recorded"}</div>
+                          {service.port ? <div>{t("projectWorkspace.port", "端口")} {service.port}</div> : null}
+                          <div>{service.command ?? t("projectWorkspace.noCommandRecorded", "未记录命令")}</div>
                           {service.cwd ? <div className="break-all font-mono">{service.cwd}</div> : null}
                         </div>
                       </div>
@@ -665,8 +667,8 @@ export function ProjectWorkspaceDetail() {
             ) : (
               <p className="text-sm text-muted-foreground">
                 {workspace.runtimeConfig?.workspaceRuntime
-                  ? "No runtime services are currently running for this workspace."
-                  : "No runtime-service default is configured for this workspace yet."}
+                  ? t("projectWorkspace.noRuntimeServicesRunning", "此工作区当前无运行服务。")
+                  : t("projectWorkspace.noRuntimeServiceConfigured", "此工作区尚未配置运行服务默认值。")}
               </p>
             )}
           </div>

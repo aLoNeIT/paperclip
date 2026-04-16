@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type SVGProps } from "react";
 import { Link, useNavigate, useParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import type {
   CompanySkillCreateRequest,
   CompanySkillDetail,
@@ -260,31 +261,31 @@ function NewSkillForm({
         <Input
           value={name}
           onChange={(event) => setName(event.target.value)}
-          placeholder="Skill name"
+          placeholder={t("skills.skillName", "技能名称")}
           className="h-9 rounded-none border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
         />
         <Input
           value={slug}
           onChange={(event) => setSlug(event.target.value)}
-          placeholder="optional-shortname"
+          placeholder={t("skills.optionalShortname", "可选短名称")}
           className="h-9 rounded-none border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
         />
         <Textarea
           value={description}
           onChange={(event) => setDescription(event.target.value)}
-          placeholder="Short description"
+          placeholder={t("skills.shortDescription", "简短描述")}
           className="min-h-20 rounded-none border-0 border-b border-border px-0 shadow-none focus-visible:ring-0"
         />
         <div className="flex items-center justify-end gap-2">
           <Button variant="ghost" size="sm" onClick={onCancel} disabled={isPending}>
-            Cancel
+            {t("common.cancel", "取消")}
           </Button>
           <Button
             size="sm"
             onClick={() => onCreate({ name, slug: slug || null, description: description || null })}
             disabled={isPending || name.trim().length === 0}
           >
-            {isPending ? "Creating..." : "Create skill"}
+            {isPending ? t("skills.creating", "创建中...") : t("skills.createSkill", "创建技能")}
           </Button>
         </div>
       </div>
@@ -411,7 +412,7 @@ function SkillList({
   if (filteredSkills.length === 0) {
     return (
       <div className="px-4 py-6 text-sm text-muted-foreground">
-        No skills match this filter.
+        {t("skills.noSkillsMatchFilter", "没有技能匹配此筛选条件。")}
       </div>
     );
   }
@@ -539,7 +540,7 @@ function SkillPane({
     return (
       <EmptyState
         icon={Boxes}
-        message="Select a skill to inspect its files."
+        message={t("skills.selectSkillToInspect", "选择一个技能来检查其文件。")}
       />
     );
   }
@@ -577,7 +578,7 @@ function SkillPane({
               title={removeDisabledReason ?? undefined}
             >
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              {deletePending ? "Removing..." : "Remove"}
+              {deletePending ? t("skills.removing", "移除中...") : t("skills.remove", "移除")}
             </Button>
             {detail.editable ? (
               <button
@@ -585,7 +586,7 @@ function SkillPane({
                 onClick={() => setEditMode(!editMode)}
               >
                 <Pencil className="h-3.5 w-3.5" />
-                {editMode ? "Stop editing" : "Edit"}
+                {editMode ? t("skills.stopEditing", "停止编辑") : t("skills.edit", "编辑")}
               </button>
             ) : (
               <div className="text-sm text-muted-foreground">{detail.editableReason}</div>
@@ -596,7 +597,7 @@ function SkillPane({
         <div className="mt-4 space-y-3 border-t border-border pt-4 text-sm">
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Source</span>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("skills.source", "来源")}</span>
               <span className="flex items-center gap-2">
                 <SourceIcon className="h-3.5 w-3.5 text-muted-foreground" />
                 {detail.sourcePath ? (
@@ -604,7 +605,7 @@ function SkillPane({
                     className="truncate hover:text-foreground text-muted-foreground transition-colors cursor-pointer"
                     onClick={() => {
                       navigator.clipboard.writeText(detail.sourcePath!);
-                      pushToast({ title: "Copied path to workspace" });
+                      pushToast({ title: t("skills.copiedPath", "已复制路径到工作区") });
                     }}
                   >
                     {source.label}
@@ -616,10 +617,10 @@ function SkillPane({
             </div>
             {detail.sourceType === "github" && (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Pin</span>
-                <span className="font-mono text-xs">{currentPin ?? "untracked"}</span>
+                <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("skills.pin", "固定")}</span>
+                <span className="font-mono text-xs">{currentPin ?? t("skills.untracked", "未追踪")}</span>
                 {updateStatus?.trackingRef && (
-                  <span className="text-xs text-muted-foreground">tracking {updateStatus.trackingRef}</span>
+                  <span className="text-xs text-muted-foreground">{t("skills.tracking", "追踪中")} {updateStatus.trackingRef}</span>
                 )}
                 <Button
                   variant="ghost"
@@ -628,7 +629,7 @@ function SkillPane({
                   disabled={checkUpdatesPending || updateStatusLoading}
                 >
                   <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", (checkUpdatesPending || updateStatusLoading) && "animate-spin")} />
-                  Check for updates
+                  {t("skills.checkForUpdates", "检查更新")}
                 </Button>
                 {updateStatus?.supported && updateStatus.hasUpdate && (
                   <Button
@@ -637,11 +638,11 @@ function SkillPane({
                     disabled={installUpdatePending}
                   >
                     <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", installUpdatePending && "animate-spin")} />
-                    Install update{latestPin ? ` ${latestPin}` : ""}
+                    {t("skills.installUpdate", "安装更新")}{latestPin ? ` ${latestPin}` : ""}
                   </Button>
                 )}
                 {updateStatus?.supported && !updateStatus.hasUpdate && !updateStatusLoading && (
-                  <span className="text-xs text-muted-foreground">Up to date</span>
+                  <span className="text-xs text-muted-foreground">{t("skills.upToDate", "已是最新")}</span>
                 )}
                 {!updateStatus?.supported && updateStatus?.reason && (
                   <span className="text-xs text-muted-foreground">{updateStatus.reason}</span>
@@ -649,18 +650,18 @@ function SkillPane({
               </div>
             )}
             <div className="flex items-center gap-2">
-              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Key</span>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("skills.key", "键")}</span>
               <span className="font-mono text-xs">{detail.key}</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Mode</span>
-              <span>{detail.editable ? "Editable" : "Read only"}</span>
+              <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("skills.mode", "模式")}</span>
+              <span>{detail.editable ? t("skills.editable", "可编辑") : t("skills.readOnly", "只读")}</span>
             </div>
           </div>
           <div className="flex flex-wrap items-start gap-x-3 gap-y-1">
-            <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">Used by</span>
+            <span className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">{t("skills.usedBy", "使用者")}</span>
             {usedBy.length === 0 ? (
-              <span className="text-muted-foreground">No agents attached</span>
+              <span className="text-muted-foreground">{t("skills.noAgentsAttached", "没有关联的智能体")}</span>
             ) : (
               <div className="flex flex-wrap gap-x-3 gap-y-1">
                 {usedBy.map((agent) => (
@@ -709,11 +710,11 @@ function SkillPane({
             {editMode && file?.editable && (
               <>
                 <Button variant="ghost" size="sm" onClick={() => setEditMode(false)} disabled={savePending}>
-                  Cancel
+                  {t("common.cancel", "取消")}
                 </Button>
                 <Button size="sm" onClick={onSave} disabled={savePending}>
                   <Save className="mr-1.5 h-3.5 w-3.5" />
-                  {savePending ? "Saving..." : "Save"}
+                  {savePending ? t("common.saving", "保存中...") : t("common.save", "保存")}
                 </Button>
               </>
             )}
@@ -725,7 +726,7 @@ function SkillPane({
         {fileLoading ? (
           <PageSkeleton variant="detail" />
         ) : !file ? (
-          <div className="text-sm text-muted-foreground">Select a file to inspect.</div>
+          <div className="text-sm text-muted-foreground">{t("skills.selectFileToInspect", "选择一个文件来检查。")}</div>
         ) : editMode && file.editable ? (
           file.markdown ? (
             <MarkdownEditor
@@ -760,6 +761,7 @@ export function CompanySkills() {
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const { pushToast } = useToast();
+  const { t } = useTranslation();
   const [skillFilter, setSkillFilter] = useState("");
   const [source, setSource] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
@@ -1064,7 +1066,7 @@ export function CompanySkills() {
   });
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Boxes} message="Select a company to manage skills." />;
+    return <EmptyState icon={Boxes} message={t("skills.selectCompanyToManage", "选择公司以管理技能。")} />;
   }
 
   function handleAddSkillSource() {
@@ -1081,44 +1083,44 @@ export function CompanySkills() {
       <Dialog open={deleteOpen} onOpenChange={closeDeleteDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Remove skill</DialogTitle>
+            <DialogTitle>{t("skills.removeSkill", "移除技能")}</DialogTitle>
             <DialogDescription>
-              Remove this skill from the company library. If any agents still use it, removal will be blocked until it is detached.
+              {t("skills.removeSkillDesc", "从公司库中移除此技能。如果仍有智能体使用它，移除将被阻止直到它被分离。")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <p>
               {deleteTargetDetail
-                ? `You are about to remove ${deleteTargetDetail.name}.`
-                : "You are about to remove this skill."}
+                ? `${t("skills.aboutToRemove", "即将移除")} ${deleteTargetDetail.name}。`
+                : t("skills.aboutToRemoveSkill", "即将移除此技能。")}
             </p>
             {deleteTargetDetail?.usedByAgents?.length ? (
               <div className="rounded-md border border-border px-3 py-3 text-muted-foreground">
-                Currently used by {deleteTargetDetail.usedByAgents.map((agent) => agent.name).join(", ")}.
+                {t("skills.currentlyUsedBy", "当前被")} {deleteTargetDetail.usedByAgents.map((agent) => agent.name).join(", ")}{t("skills.using", "使用")}。
               </div>
             ) : null}
             {(deleteTargetDetail?.usedByAgents.length ?? 0) > 0 ? (
               <p className="text-muted-foreground">
-                Detach this skill from all agents to enable removal.
+                {t("skills.detachToEnableRemoval", "从所有智能体分离此技能以启用移除。")}
               </p>
             ) : null}
           </div>
           <DialogFooter>
             {(deleteTargetDetail?.usedByAgents.length ?? 0) > 0 ? (
               <Button variant="ghost" onClick={() => closeDeleteDialog(false)}>
-                Close
+                {t("common.close", "关闭")}
               </Button>
             ) : (
               <>
                 <Button variant="ghost" onClick={() => closeDeleteDialog(false)} disabled={deleteSkill.isPending}>
-                  Cancel
+                  {t("common.cancel", "取消")}
                 </Button>
                 <Button
                   variant="destructive"
                   onClick={() => deleteSkill.mutate()}
                   disabled={deleteSkill.isPending || !deleteTargetSkillId}
                 >
-                  {deleteSkill.isPending ? "Removing..." : "Remove skill"}
+                  {deleteSkill.isPending ? t("skills.removing", "移除中...") : t("skills.removeSkill", "移除技能")}
                 </Button>
               </>
             )}
@@ -1129,9 +1131,9 @@ export function CompanySkills() {
       <Dialog open={emptySourceHelpOpen} onOpenChange={setEmptySourceHelpOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add a skill source</DialogTitle>
+            <DialogTitle>{t("skills.addSkillSource", "添加技能来源")}</DialogTitle>
             <DialogDescription>
-              Paste a local path, GitHub URL, or `skills.sh` command into the field first.
+              {t("skills.addSkillSourceDesc", "首先将本地路径、GitHub URL 或 `skills.sh` 命令粘贴到字段中。")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
@@ -1142,9 +1144,9 @@ export function CompanySkills() {
               className="flex items-start justify-between rounded-md border border-border px-3 py-3 text-foreground no-underline transition-colors hover:bg-accent/40"
             >
               <span>
-                <span className="block font-medium">Browse skills.sh</span>
+                <span className="block font-medium">{t("skills.browseSkillsSh", "浏览 skills.sh")}</span>
                 <span className="mt-1 block text-muted-foreground">
-                  Find install commands and paste one here.
+                  {t("skills.findInstallCommands", "查找安装命令并在此处粘贴。")}
                 </span>
               </span>
               <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -1156,9 +1158,9 @@ export function CompanySkills() {
               className="flex items-start justify-between rounded-md border border-border px-3 py-3 text-foreground no-underline transition-colors hover:bg-accent/40"
             >
               <span>
-                <span className="block font-medium">Search GitHub</span>
+                <span className="block font-medium">{t("skills.searchGitHub", "搜索 GitHub")}</span>
                 <span className="mt-1 block text-muted-foreground">
-                  Look for repositories with `SKILL.md`, then paste the repo URL here.
+                  {t("skills.lookForRepositories", "查找包含 `SKILL.md` 的仓库，然后在此处粘贴仓库 URL。")}
                 </span>
               </span>
               <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
@@ -1173,9 +1175,9 @@ export function CompanySkills() {
           <div className="border-b border-border px-4 py-3">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <h1 className="text-base font-semibold">Skills</h1>
+                <h1 className="text-base font-semibold">{t("skills.title", "技能")}</h1>
                 <p className="text-xs text-muted-foreground">
-                  {skillsQuery.data?.length ?? 0} available
+                  {skillsQuery.data?.length ?? 0} {t("skills.available", "可用")}
                 </p>
               </div>
               <div className="flex items-center gap-1">
@@ -1184,7 +1186,7 @@ export function CompanySkills() {
                   size="icon-sm"
                   onClick={() => scanProjects.mutate()}
                   disabled={scanProjects.isPending}
-                  title="Scan project workspaces for skills"
+                  title={t("skills.scanProjectWorkspaces", "扫描项目工作区以查找技能")}
                 >
                   <RefreshCw className={cn("h-4 w-4", scanProjects.isPending && "animate-spin")} />
                 </Button>
@@ -1199,7 +1201,7 @@ export function CompanySkills() {
               <input
                 value={skillFilter}
                 onChange={(event) => setSkillFilter(event.target.value)}
-                placeholder="Filter skills"
+                placeholder={t("skills.filterSkills", "筛选技能")}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
             </div>
@@ -1208,7 +1210,7 @@ export function CompanySkills() {
               <input
                 value={source}
                 onChange={(event) => setSource(event.target.value)}
-                placeholder="Paste path, GitHub URL, or skills.sh command"
+                placeholder={t("skills.pastePathOrUrl", "粘贴路径、GitHub URL 或 skills.sh 命令")}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
               <Button
@@ -1217,7 +1219,7 @@ export function CompanySkills() {
                 onClick={handleAddSkillSource}
                 disabled={importSkill.isPending}
               >
-                {importSkill.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : "Add"}
+                {importSkill.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : t("common.add", "添加")}
               </Button>
             </div>
             {scanStatusMessage && (

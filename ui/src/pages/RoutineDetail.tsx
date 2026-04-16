@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import {
   Activity as ActivityIcon,
   ChevronDown,
@@ -268,7 +269,7 @@ export function RoutineDetail() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
-  const { pushToast } = useToast();
+  const { pushToast, t } = useToast();
   const hydratedRoutineIdRef = useRef<string | null>(null);
   const titleInputRef = useRef<HTMLTextAreaElement | null>(null);
   const descriptionEditorRef = useRef<MarkdownEditorRef>(null);
@@ -382,7 +383,7 @@ export function RoutineDetail() {
 
   useEffect(() => {
     if (!routine) return;
-    setBreadcrumbs([{ label: "Routines", href: "/routines" }, { label: routine.title }]);
+    setBreadcrumbs([{ label: t("routines.title", "例行任务"), href: "/routines" }, { label: routine.title }]);
     if (!routineDefaults) return;
 
     const changedRoutine = hydratedRoutineIdRef.current !== routine.id;
@@ -440,8 +441,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to save routine",
-        body: error instanceof Error ? error.message : "Paperclip could not save the routine.",
+        title: t("routineDetail.failedToSave", "保存例行任务失败"),
+        body: error instanceof Error ? error.message : t("routineDetail.couldNotSave", "Paperclip 无法保存例行任务。"),
         tone: "error",
       });
     },
@@ -462,7 +463,7 @@ export function RoutineDetail() {
           : {}),
       }),
     onSuccess: async () => {
-      pushToast({ title: "Routine run started", tone: "success" });
+      pushToast({ title: t("routineDetail.runStarted", "例行任务运行已启动"), tone: "success" });
       setRunVariablesOpen(false);
       setActiveTab("runs");
       await Promise.all([
@@ -474,8 +475,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Routine run failed",
-        body: error instanceof Error ? error.message : "Paperclip could not start the routine run.",
+        title: t("routineDetail.runFailed", "例行任务运行失败"),
+        body: error instanceof Error ? error.message : t("routineDetail.couldNotStart", "Paperclip 无法启动例行任务运行。"),
         tone: "error",
       });
     },
@@ -485,8 +486,8 @@ export function RoutineDetail() {
     mutationFn: (status: string) => routinesApi.update(routineId!, { status }),
     onSuccess: async (_data, status) => {
       pushToast({
-        title: "Routine saved",
-        body: status === "paused" ? "Automation paused." : "Automation enabled.",
+        title: t("routineDetail.routineSaved", "例行任务已保存"),
+        body: status === "paused" ? t("routineDetail.automationPaused", "自动化已暂停。") : t("routineDetail.automationEnabled", "自动化已启用。"),
         tone: "success",
       });
       await Promise.all([
@@ -496,8 +497,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to update routine",
-        body: error instanceof Error ? error.message : "Paperclip could not update the routine.",
+        title: t("routineDetail.failedToUpdate", "更新例行任务失败"),
+        body: error instanceof Error ? error.message : t("routineDetail.couldNotUpdate", "Paperclip 无法更新例行任务。"),
         tone: "error",
       });
     },
@@ -524,14 +525,14 @@ export function RoutineDetail() {
     onSuccess: async (result) => {
       if (result.secretMaterial) {
         setSecretMessage({
-          title: "Webhook trigger created",
+          title: t("routineDetail.webhookCreated", "Webhook 触发器已创建"),
           webhookUrl: result.secretMaterial.webhookUrl,
           webhookSecret: result.secretMaterial.webhookSecret,
         });
       } else {
         pushToast({
-          title: "Trigger added",
-          body: "The routine schedule was saved.",
+          title: t("routineDetail.triggerAdded", "触发器已添加"),
+          body: t("routineDetail.scheduleSaved", "例行任务计划已保存。"),
           tone: "success",
         });
       }
@@ -543,8 +544,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to add trigger",
-        body: error instanceof Error ? error.message : "Paperclip could not create the trigger.",
+        title: t("routineDetail.failedToAddTrigger", "添加触发器失败"),
+        body: error instanceof Error ? error.message : t("routineDetail.couldNotCreateTrigger", "Paperclip 无法创建触发器。"),
         tone: "error",
       });
     },
@@ -554,8 +555,8 @@ export function RoutineDetail() {
     mutationFn: ({ id, patch }: { id: string; patch: Record<string, unknown> }) => routinesApi.updateTrigger(id, patch),
     onSuccess: async () => {
       pushToast({
-        title: "Trigger saved",
-        body: "The routine cadence update was saved.",
+        title: t("routineDetail.triggerSaved", "触发器已保存"),
+        body: t("routineDetail.cadenceSaved", "例行任务节奏更新已保存。"),
         tone: "success",
       });
       await Promise.all([
@@ -566,8 +567,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to update trigger",
-        body: error instanceof Error ? error.message : "Paperclip could not update the trigger.",
+        title: t("routineDetail.failedToUpdateTrigger", "更新触发器失败"),
+        body: error instanceof Error ? error.message : t("routineDetail.couldNotUpdateTrigger", "Paperclip 无法更新触发器。"),
         tone: "error",
       });
     },
@@ -577,7 +578,7 @@ export function RoutineDetail() {
     mutationFn: (id: string) => routinesApi.deleteTrigger(id),
     onSuccess: async () => {
       pushToast({
-        title: "Trigger deleted",
+        title: t("routineDetail.triggerDeleted", "触发器已删除"),
         tone: "success",
       });
       await Promise.all([
@@ -588,8 +589,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to delete trigger",
-        body: error instanceof Error ? error.message : "Paperclip could not delete the trigger.",
+        title: t("routineDetail.failedToDeleteTrigger", "删除触发器失败"),
+        body: error instanceof Error ? error.message : t("routineDetail.couldNotDeleteTrigger", "Paperclip 无法删除触发器。"),
         tone: "error",
       });
     },
@@ -599,7 +600,7 @@ export function RoutineDetail() {
     mutationFn: (id: string): Promise<RotateRoutineTriggerResponse> => routinesApi.rotateTriggerSecret(id),
     onSuccess: async (result) => {
       setSecretMessage({
-        title: "Webhook secret rotated",
+        title: t("routineDetail.secretRotated", "Webhook 密钥已轮换"),
         webhookUrl: result.secretMaterial.webhookUrl,
         webhookSecret: result.secretMaterial.webhookSecret,
       });
@@ -610,8 +611,8 @@ export function RoutineDetail() {
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to rotate webhook secret",
-        body: error instanceof Error ? error.message : "Paperclip could not rotate the webhook secret.",
+        title: t("routineDetail.failedToRotateSecret", "轮换 Webhook 密钥失败"),
+        body: error instanceof Error ? error.message : t("routineDetail.couldNotRotateSecret", "Paperclip 无法轮换 Webhook 密钥。"),
         tone: "error",
       });
     },
@@ -651,7 +652,7 @@ export function RoutineDetail() {
   const currentProject = editDraft.projectId ? projectById.get(editDraft.projectId) ?? null : null;
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Repeat} message="Select a company to view routines." />;
+    return <EmptyState icon={Repeat} message={t("routineDetail.selectCompany", "选择公司以查看例行任务。")} />;
   }
 
   if (isLoading) {
@@ -661,7 +662,7 @@ export function RoutineDetail() {
   if (error || !routine) {
     return (
       <p className="pt-6 text-sm text-destructive">
-        {error instanceof Error ? error.message : "Routine not found"}
+        {error instanceof Error ? error.message : t("routineDetail.notFound", "例行任务不存在")}
       </p>
     );
   }
@@ -716,34 +717,34 @@ export function RoutineDetail() {
             }
           }}
         />
-        <div className="flex shrink-0 items-center gap-3 pt-1">
-          <RunButton
-            onClick={() => {
-              setRunVariablesOpen(true);
-            }}
-            disabled={runRoutine.isPending}
-          />
-          <ToggleSwitch
-            size="lg"
-            checked={automationEnabled}
-            onCheckedChange={() => {
-              if (!automationEnabled && !routine.assigneeAgentId) {
-                pushToast({
-                  title: "Default agent required",
-                  body: "Set a default agent before enabling routine automation.",
-                  tone: "warn",
-                });
-                return;
-              }
-              updateRoutineStatus.mutate(automationEnabled ? "paused" : "active");
-            }}
-            disabled={automationToggleDisabled}
-            aria-label={automationEnabled ? "Pause automatic triggers" : "Enable automatic triggers"}
-          />
-          <span className={`min-w-[3.75rem] text-sm font-medium ${automationLabelClassName}`}>
-            {automationLabel}
-          </span>
-        </div>
+          <div className="flex shrink-0 items-center gap-3 pt-1">
+            <RunButton
+              onClick={() => {
+                setRunVariablesOpen(true);
+              }}
+              disabled={runRoutine.isPending}
+            />
+            <ToggleSwitch
+              size="lg"
+              checked={automationEnabled}
+              onCheckedChange={() => {
+                if (!automationEnabled && !routine.assigneeAgentId) {
+                  pushToast({
+                    title: t("routineDetail.defaultAgentRequired", "需要默认智能体"),
+                    body: t("routineDetail.setDefaultAgent", "启用例行任务自动化前请设置默认智能体。"),
+                    tone: "warn",
+                  });
+                  return;
+                }
+                updateRoutineStatus.mutate(automationEnabled ? "paused" : "active");
+              }}
+              disabled={automationToggleDisabled}
+              aria-label={automationEnabled ? t("routineDetail.pauseTriggers", "暂停自动触发") : t("routineDetail.enableTriggers", "启用自动触发")}
+            />
+            <span className={`min-w-[3.75rem] text-sm font-medium ${automationLabelClassName}`}>
+              {automationLabel}
+            </span>
+          </div>
       </div>
 
       {/* Secret message banner */}
@@ -774,22 +775,22 @@ export function RoutineDetail() {
 
       {!routine.assigneeAgentId ? (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-900 dark:text-amber-200">
-          Default agent required. This routine can stay as a draft and still run manually, but automation stays paused until you assign a default agent.
+          {t("routineDetail.defaultAgentRequiredDesc", "需要默认智能体。此例行任务可以保持草稿状态并仍可手动运行，但自动化将保持暂停状态，直到您分配默认智能体。")}
         </div>
       ) : null}
 
       {/* Assignment row */}
       <div className="overflow-x-auto overscroll-x-contain">
         <div className="inline-flex min-w-full flex-wrap items-center gap-2 text-sm text-muted-foreground sm:min-w-max sm:flex-nowrap">
-          <span>For</span>
+          <span>{t("routineDetail.for", "对于")}</span>
           <InlineEntitySelector
             ref={assigneeSelectorRef}
             value={editDraft.assigneeAgentId}
             options={assigneeOptions}
-            placeholder="Assignee"
-            noneLabel="No assignee"
-            searchPlaceholder="Search assignees..."
-            emptyMessage="No assignees found."
+            placeholder={t("routineDetail.assignee", "经办人")}
+            noneLabel={t("routineDetail.noAssignee", "无经办人")}
+            searchPlaceholder={t("routineDetail.searchAssignees", "搜索经办人...")}
+            emptyMessage={t("routineDetail.noAssigneesFound", "未找到经办人。")}
             onChange={(assigneeAgentId) => {
               if (assigneeAgentId) trackRecentAssignee(assigneeAgentId);
               setEditDraft((current) => ({ ...current, assigneeAgentId }));
@@ -831,10 +832,10 @@ export function RoutineDetail() {
             ref={projectSelectorRef}
             value={editDraft.projectId}
             options={projectOptions}
-            placeholder="Project"
-            noneLabel="No project"
-            searchPlaceholder="Search projects..."
-            emptyMessage="No projects found."
+            placeholder={t("routineDetail.project", "项目")}
+            noneLabel={t("routineDetail.noProject", "无项目")}
+            searchPlaceholder={t("routineDetail.searchProjects", "搜索项目...")}
+            emptyMessage={t("routineDetail.noProjectsFound", "未找到项目。")}
             onChange={(projectId) => setEditDraft((current) => ({ ...current, projectId }))}
             onConfirm={() => descriptionEditorRef.current?.focus()}
             renderTriggerValue={(option) =>
@@ -872,7 +873,7 @@ export function RoutineDetail() {
         ref={descriptionEditorRef}
         value={editDraft.description}
         onChange={(description) => setEditDraft((current) => ({ ...current, description }))}
-        placeholder="Add instructions..."
+        placeholder={t("routineDetail.addInstructions", "添加指令...")}
         bordered={false}
         contentClassName="min-h-[120px] text-[15px] leading-7"
         onSubmit={() => {
@@ -892,13 +893,13 @@ export function RoutineDetail() {
       {/* Advanced delivery settings */}
       <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
         <CollapsibleTrigger className="flex w-full items-center justify-between text-left">
-          <span className="text-sm font-medium">Advanced delivery settings</span>
+          <span className="text-sm font-medium">{t("routineDetail.advancedDelivery", "高级传递设置")}</span>
           {advancedOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-3">
           <div className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Concurrency</p>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{t("routineDetail.concurrency", "并发性")}</p>
               <Select
                 value={editDraft.concurrencyPolicy}
                 onValueChange={(concurrencyPolicy) => setEditDraft((current) => ({ ...current, concurrencyPolicy }))}
@@ -915,7 +916,7 @@ export function RoutineDetail() {
               <p className="text-xs text-muted-foreground">{concurrencyPolicyDescriptions[editDraft.concurrencyPolicy]}</p>
             </div>
             <div className="space-y-2">
-              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">Catch-up</p>
+              <p className="text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">{t("routineDetail.catchUp", "追赶")}</p>
               <Select
                 value={editDraft.catchUpPolicy}
                 onValueChange={(catchUpPolicy) => setEditDraft((current) => ({ ...current, catchUpPolicy }))}
@@ -938,7 +939,7 @@ export function RoutineDetail() {
       {/* Save bar */}
       <div className="flex items-center justify-between">
         {isEditDirty ? (
-          <span className="text-xs text-amber-600">Unsaved changes</span>
+          <span className="text-xs text-amber-600">{t("routineDetail.unsavedChanges", "未保存的更改")}</span>
         ) : (
           <span />
         )}
@@ -947,7 +948,7 @@ export function RoutineDetail() {
           disabled={saveRoutine.isPending || !editDraft.title.trim()}
         >
           <Save className="mr-2 h-4 w-4" />
-          Save routine
+          {t("routineDetail.saveRoutine", "保存例行任务")}
         </Button>
       </div>
 
@@ -958,26 +959,26 @@ export function RoutineDetail() {
         <TabsList variant="line" className="w-full justify-start gap-1">
           <TabsTrigger value="triggers" className="gap-1.5">
             <Clock3 className="h-3.5 w-3.5" />
-            Triggers
+            {t("routineDetail.triggers", "触发器")}
           </TabsTrigger>
           <TabsTrigger value="runs" className="gap-1.5">
             <Play className="h-3.5 w-3.5" />
-            Runs
+            {t("routineDetail.runs", "运行")}
             {hasLiveRun && <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />}
           </TabsTrigger>
 <TabsTrigger value="activity" className="gap-1.5">
             <ActivityIcon className="h-3.5 w-3.5" />
-            Activity
+            {t("routineDetail.activity", "活动")}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="triggers" className="space-y-4">
           {/* Add trigger form */}
           <div className="rounded-lg border border-border p-4 space-y-3">
-            <p className="text-sm font-medium">Add trigger</p>
+            <p className="text-sm font-medium">{t("routineDetail.addTrigger", "添加触发器")}</p>
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-1.5">
-                <Label className="text-xs">Kind</Label>
+                <Label className="text-xs">{t("routineDetail.kind", "类型")}</Label>
                 <Select value={newTrigger.kind} onValueChange={(kind) => setNewTrigger((current) => ({ ...current, kind }))}>
                   <SelectTrigger>
                     <SelectValue />
@@ -993,7 +994,7 @@ export function RoutineDetail() {
               </div>
               {newTrigger.kind === "schedule" && (
                 <div className="md:col-span-2 space-y-1.5">
-                  <Label className="text-xs">Schedule</Label>
+                  <Label className="text-xs">{t("routineDetail.schedule", "计划")}</Label>
                   <ScheduleEditor
                     value={newTrigger.cronExpression}
                     onChange={(cronExpression) => setNewTrigger((current) => ({ ...current, cronExpression }))}
@@ -1003,7 +1004,7 @@ export function RoutineDetail() {
               {newTrigger.kind === "webhook" && (
                 <>
                   <div className="space-y-1.5">
-                    <Label className="text-xs">Signing mode</Label>
+                    <Label className="text-xs">{t("routineDetail.signingMode", "签名模式")}</Label>
                     <Select value={newTrigger.signingMode} onValueChange={(signingMode) => setNewTrigger((current) => ({ ...current, signingMode }))}>
                       <SelectTrigger>
                         <SelectValue />
@@ -1018,7 +1019,7 @@ export function RoutineDetail() {
                   </div>
                   {!SIGNING_MODES_WITHOUT_REPLAY_WINDOW.has(newTrigger.signingMode) && (
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Replay window (seconds)</Label>
+                      <Label className="text-xs">{t("routineDetail.replayWindow", "重放窗口（秒）")}</Label>
                       <Input value={newTrigger.replayWindowSec} onChange={(event) => setNewTrigger((current) => ({ ...current, replayWindowSec: event.target.value }))} />
                     </div>
                   )}
@@ -1027,14 +1028,14 @@ export function RoutineDetail() {
             </div>
             <div className="flex items-center justify-end">
               <Button size="sm" onClick={() => createTrigger.mutate()} disabled={createTrigger.isPending}>
-                {createTrigger.isPending ? "Adding..." : "Add trigger"}
+                {createTrigger.isPending ? t("routineDetail.adding", "添加中...") : t("routineDetail.addTrigger", "添加触发器")}
               </Button>
             </div>
           </div>
 
           {/* Existing triggers */}
           {routine.triggers.length === 0 ? (
-            <p className="text-xs text-muted-foreground">No triggers configured yet.</p>
+            <p className="text-xs text-muted-foreground">{t("routineDetail.noTriggersConfigured", "尚未配置触发器。")}</p>
           ) : (
             <div className="space-y-3">
               {routine.triggers.map((trigger) => (
@@ -1055,7 +1056,7 @@ export function RoutineDetail() {
             <LiveRunWidget issueId={activeIssueId} companyId={routine.companyId} />
           )}
           {(routineRuns ?? []).length === 0 ? (
-            <p className="text-xs text-muted-foreground">No runs yet.</p>
+            <p className="text-xs text-muted-foreground">{t("routineDetail.noRunsYet", "暂无运行。")}</p>
           ) : (
             <div className="border border-border rounded-lg divide-y divide-border">
               {(routineRuns ?? []).map((run) => (
@@ -1083,7 +1084,7 @@ export function RoutineDetail() {
 
         <TabsContent value="activity">
           {(activity ?? []).length === 0 ? (
-            <p className="text-xs text-muted-foreground">No activity yet.</p>
+            <p className="text-xs text-muted-foreground">{t("routineDetail.noActivityYet", "暂无活动。")}</p>
           ) : (
             <div className="border border-border rounded-lg divide-y divide-border">
               {(activity ?? []).map((event) => (

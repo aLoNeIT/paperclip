@@ -6,6 +6,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { Button } from "@/components/ui/button";
 import { AsciiArtAnimation } from "@/components/AsciiArtAnimation";
 import { Sparkles } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type AuthMode = "sign_in" | "sign_up";
 
@@ -13,6 +14,7 @@ export function AuthPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
   const [mode, setMode] = useState<AuthMode>("sign_in");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -51,7 +53,7 @@ export function AuthPage() {
       navigate(nextPath, { replace: true });
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Authentication failed");
+      setError(err instanceof Error ? err.message : t("auth.authenticationFailed", "认证失败"));
     },
   });
 
@@ -60,10 +62,20 @@ export function AuthPage() {
     password.trim().length > 0 &&
     (mode === "sign_in" || (name.trim().length > 0 && password.trim().length >= 8));
 
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (mutation.isPending) return;
+    if (!canSubmit) {
+      setError(t("auth.fillAllFields", "请填写所有必填字段。"));
+      return;
+    }
+    mutation.mutate();
+  };
+
   if (isSessionLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
-        <p className="text-sm text-muted-foreground">Loading…</p>
+        <p className="text-sm text-muted-foreground">{t("auth.loading", "加载中...")}</p>
       </div>
     );
   }
@@ -79,31 +91,23 @@ export function AuthPage() {
           </div>
 
           <h1 className="text-xl font-semibold">
-            {mode === "sign_in" ? "Sign in to Paperclip" : "Create your Paperclip account"}
+            {mode === "sign_in" ? t("auth.signInTitle", "登录 Paperclip") : t("auth.signUpTitle", "创建 Paperclip 账号")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {mode === "sign_in"
-              ? "Use your email and password to access this instance."
-              : "Create an account for this instance. Email confirmation is not required in v1."}
+              ? t("auth.signInDesc", "使用您的邮箱和密码登录此实例。")
+              : t("auth.signUpDesc", "为此实例创建账号。v1 版本无需邮箱确认。")}
           </p>
 
           <form
             className="mt-6 space-y-4"
             method="post"
             action={mode === "sign_up" ? "/api/auth/sign-up/email" : "/api/auth/sign-in/email"}
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (mutation.isPending) return;
-              if (!canSubmit) {
-                setError("Please fill in all required fields.");
-                return;
-              }
-              mutation.mutate();
-            }}
+            onSubmit={handleSubmit}
           >
             {mode === "sign_up" && (
               <div>
-                <label htmlFor="name" className="text-xs text-muted-foreground mb-1 block">Name</label>
+                <label htmlFor="name" className="text-xs text-muted-foreground mb-1 block">{t("auth.name", "名称")}</label>
                 <input
                   id="name"
                   name="name"
@@ -116,7 +120,7 @@ export function AuthPage() {
               </div>
             )}
             <div>
-              <label htmlFor="email" className="text-xs text-muted-foreground mb-1 block">Email</label>
+              <label htmlFor="email" className="text-xs text-muted-foreground mb-1 block">{t("auth.email", "邮箱")}</label>
               <input
                 id="email"
                 name="email"
@@ -129,7 +133,7 @@ export function AuthPage() {
               />
             </div>
             <div>
-              <label htmlFor="password" className="text-xs text-muted-foreground mb-1 block">Password</label>
+              <label htmlFor="password" className="text-xs text-muted-foreground mb-1 block">{t("auth.password", "密码")}</label>
               <input
                 id="password"
                 name="password"
@@ -148,15 +152,15 @@ export function AuthPage() {
               className={`w-full ${!canSubmit && !mutation.isPending ? "opacity-50" : ""}`}
             >
               {mutation.isPending
-                ? "Working…"
+                ? t("auth.working", "处理中...")
                 : mode === "sign_in"
-                  ? "Sign In"
-                  : "Create Account"}
+                  ? t("auth.signIn", "登录")
+                  : t("auth.createAccount", "创建账号")}
             </Button>
           </form>
 
           <div className="mt-5 text-sm text-muted-foreground">
-            {mode === "sign_in" ? "Need an account?" : "Already have an account?"}{" "}
+            {mode === "sign_in" ? t("auth.needAccount", "需要账号？") : t("auth.haveAccount", "已有账号？")}{" "}
             <button
               type="button"
               className="font-medium text-foreground underline underline-offset-2"
@@ -165,7 +169,7 @@ export function AuthPage() {
                 setMode(mode === "sign_in" ? "sign_up" : "sign_in");
               }}
             >
-              {mode === "sign_in" ? "Create one" : "Sign in"}
+              {mode === "sign_in" ? t("auth.createOne", "创建一个") : t("auth.signIn", "登录")}
             </button>
           </div>
         </div>
