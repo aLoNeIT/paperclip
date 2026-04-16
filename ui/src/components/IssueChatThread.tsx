@@ -77,6 +77,7 @@ import {
   summarizeToolResult,
 } from "../lib/transcriptPresentation";
 import { cn, formatDateTime, formatShortDate } from "../lib/utils";
+import { useTranslation } from "react-i18next";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
@@ -923,7 +924,7 @@ function IssueChatUserMessage() {
           </div>
 
           {pending ? (
-            <div className="mt-1 flex justify-end px-1 text-[11px] text-muted-foreground">Sending...</div>
+            <div className="mt-1 flex justify-end px-1 text-[11px] text-muted-foreground">{t("issueChatThread.sending", "发送中...")}</div>
           ) : (
             <div className="mt-1 flex items-center justify-end gap-1.5 px-1 opacity-0 transition-opacity group-hover:opacity-100">
               <Tooltip>
@@ -942,8 +943,8 @@ function IssueChatUserMessage() {
               <button
                 type="button"
                 className="inline-flex h-6 w-6 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
-                title="Copy message"
-                aria-label="Copy message"
+                title={t("issueChatThread.copyMessage", "复制消息")}
+                aria-label={t("issueChatThread.copyMessage", "复制消息")}
                 onClick={() => {
                   const text = message.content
                     .filter((p): p is { type: "text"; text: string } => p.type === "text")
@@ -1160,13 +1161,13 @@ function IssueChatAssistantMessage() {
                       }}
                     >
                       <Copy className="mr-2 h-3.5 w-3.5" />
-                      Copy message
+                      {t("issueChatThread.copyMessage", "复制消息")}
                     </DropdownMenuItem>
                     {runHref ? (
                       <DropdownMenuItem asChild>
                         <Link to={runHref} target="_blank" rel="noreferrer noopener">
                           <Search className="mr-2 h-3.5 w-3.5" />
-                          View run
+                          {t("issueChatThread.viewRun", "查看运行")}
                         </Link>
                       </DropdownMenuItem>
                     ) : null}
