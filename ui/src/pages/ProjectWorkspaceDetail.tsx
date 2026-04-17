@@ -209,6 +209,36 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
+function formatRuntimeServiceStatus(status: string) {
+  switch (status) {
+    case "starting":
+      return "启动中";
+    case "running":
+      return "运行中";
+    case "stopped":
+      return "已停止";
+    case "failed":
+      return "失败";
+    default:
+      return status;
+  }
+}
+
+function formatRuntimeServiceHealthStatus(status: string) {
+  switch (status) {
+    case "healthy":
+      return "健康";
+    case "unhealthy":
+      return "异常";
+    case "starting":
+      return "检查中";
+    case "unknown":
+      return "未知";
+    default:
+      return status;
+  }
+}
+
 export function ProjectWorkspaceDetail() {
   const { t } = useTranslation();
   const { companyPrefix, projectId, workspaceId } = useParams<{
@@ -658,7 +688,7 @@ export function ProjectWorkspaceDetail() {
                         </div>
                       </div>
                       <div className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground sm:text-right">
-                        {service.status} · {service.healthStatus}
+                        {formatRuntimeServiceStatus(service.status)} · {formatRuntimeServiceHealthStatus(service.healthStatus)}
                       </div>
                     </div>
                   </div>

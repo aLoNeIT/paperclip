@@ -151,6 +151,7 @@ function TriggerEditor({
   onRotate: (id: string) => void;
   onDelete: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState({
     label: trigger.label ?? "",
     cronExpression: trigger.cronExpression ?? "",
@@ -176,16 +177,16 @@ function TriggerEditor({
         </div>
         <span className="text-xs text-muted-foreground">
           {trigger.kind === "schedule" && trigger.nextRunAt
-            ? `Next: ${new Date(trigger.nextRunAt).toLocaleString()}`
+            ? t("routineDetail.nextRunAt", "下次：{{time}}", { time: new Date(trigger.nextRunAt).toLocaleString() })
             : trigger.kind === "webhook"
-              ? "Webhook"
-              : "API"}
+              ? t("routineDetail.webhook", "Webhook")
+              : t("routineDetail.api", "API")}
         </span>
       </div>
 
       <div className="grid gap-3 md:grid-cols-2">
         <div className="space-y-1.5">
-          <Label className="text-xs">Label</Label>
+          <Label className="text-xs">{t("routineDetail.label", "标签")}</Label>
           <Input
             value={draft.label}
             onChange={(event) => setDraft((current) => ({ ...current, label: event.target.value }))}
@@ -193,7 +194,7 @@ function TriggerEditor({
         </div>
         {trigger.kind === "schedule" && (
           <div className="md:col-span-2 space-y-1.5">
-            <Label className="text-xs">Schedule</Label>
+            <Label className="text-xs">{t("routineDetail.schedule", "计划")}</Label>
             <ScheduleEditor
               value={draft.cronExpression}
               onChange={(cronExpression) => setDraft((current) => ({ ...current, cronExpression }))}
@@ -203,7 +204,7 @@ function TriggerEditor({
         {trigger.kind === "webhook" && (
           <>
             <div className="space-y-1.5">
-              <Label className="text-xs">Signing mode</Label>
+              <Label className="text-xs">{t("routineDetail.signingMode", "签名模式")}</Label>
               <Select
                 value={draft.signingMode}
                 onValueChange={(signingMode) => setDraft((current) => ({ ...current, signingMode }))}
@@ -220,7 +221,7 @@ function TriggerEditor({
             </div>
             {!SIGNING_MODES_WITHOUT_REPLAY_WINDOW.has(draft.signingMode) && (
               <div className="space-y-1.5">
-                <Label className="text-xs">Replay window (seconds)</Label>
+                <Label className="text-xs">{t("routineDetail.replayWindow", "重放窗口（秒）")}</Label>
                 <Input
                   value={draft.replayWindowSec}
                   onChange={(event) => setDraft((current) => ({ ...current, replayWindowSec: event.target.value }))}
@@ -232,12 +233,12 @@ function TriggerEditor({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        {trigger.lastResult && <span className="text-xs text-muted-foreground">Last: {trigger.lastResult}</span>}
+        {trigger.lastResult && <span className="text-xs text-muted-foreground">{t("routineDetail.lastResult", "上次：{{result}}", { result: trigger.lastResult })}</span>}
         <div className="ml-auto flex items-center gap-2">
           {trigger.kind === "webhook" && (
             <Button variant="outline" size="sm" onClick={() => onRotate(trigger.id)}>
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-              Rotate secret
+              {t("routineDetail.rotateSecret", "轮换密钥")}
             </Button>
           )}
           <Button
@@ -246,7 +247,7 @@ function TriggerEditor({
             onClick={() => onSave(trigger.id, buildRoutineTriggerPatch(trigger, draft, getLocalTimezone()))}
           >
             <Save className="mr-1.5 h-3.5 w-3.5" />
-            Save trigger
+            {t("routineDetail.saveTrigger", "保存触发器")}
           </Button>
           <Button
             variant="ghost"
@@ -401,11 +402,11 @@ export function RoutineDetail() {
   const copySecretValue = async (label: string, value: string) => {
     try {
       await navigator.clipboard.writeText(value);
-      pushToast({ title: `${label} copied`, tone: "success" });
+      pushToast({ title: t("routineDetail.copiedLabel", "已复制{{label}}", { label }), tone: "success" });
     } catch (error) {
       pushToast({
-        title: `Failed to copy ${label.toLowerCase()}`,
-        body: error instanceof Error ? error.message : "Clipboard access was denied.",
+        title: t("routineDetail.failedToCopyLabel", "复制{{label}}失败", { label: label.toLowerCase() }),
+        body: error instanceof Error ? error.message : t("routineDetail.clipboardDenied", "剪贴板访问被拒绝。"),
         tone: "error",
       });
     }
@@ -672,12 +673,12 @@ export function RoutineDetail() {
   const selectedProject = routine.projectId ? (projects?.find((project) => project.id === routine.projectId) ?? null) : null;
   const automationToggleDisabled = updateRoutineStatus.isPending || routine.status === "archived";
   const automationLabel = routine.status === "archived"
-    ? "Archived"
+    ? t("routineDetail.archived", "已归档")
     : !routine.assigneeAgentId
-      ? "Draft"
+      ? t("routineDetail.draft", "草稿")
       : automationEnabled
-        ? "Active"
-        : "Paused";
+        ? t("routineDetail.active", "已启用")
+        : t("routineDetail.paused", "已暂停");
   const automationLabelClassName = routine.status === "archived"
     ? "text-muted-foreground"
     : automationEnabled
@@ -691,7 +692,7 @@ export function RoutineDetail() {
         <textarea
           ref={titleInputRef}
           className="flex-1 min-w-0 resize-none overflow-hidden bg-transparent text-xl font-bold outline-none placeholder:text-muted-foreground/50"
-          placeholder="Routine title"
+          placeholder={t("routineDetail.routineTitle", "例行任务标题")}
           rows={1}
           value={editDraft.title}
           onChange={(event) => {
@@ -753,21 +754,21 @@ export function RoutineDetail() {
         <div className="rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 space-y-3 text-sm">
           <div>
             <p className="font-medium">{secretMessage.title}</p>
-            <p className="text-xs text-muted-foreground">Save this now. Paperclip will not show the secret value again.</p>
+            <p className="text-xs text-muted-foreground">{t("routineDetail.saveSecretNow", "请立即保存。Paperclip 不会再次显示该密钥值。")}</p>
           </div>
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Input value={secretMessage.webhookUrl} readOnly className="flex-1" />
-              <Button variant="outline" size="sm" onClick={() => copySecretValue("Webhook URL", secretMessage.webhookUrl)}>
+              <Button variant="outline" size="sm" onClick={() => copySecretValue(t("routineDetail.webhookUrlLabel", "Webhook URL"), secretMessage.webhookUrl)}>
                 <Copy className="h-3.5 w-3.5 mr-1" />
-                URL
+                {t("routineDetail.url", "URL")}
               </Button>
             </div>
             <div className="flex items-center gap-2">
               <Input value={secretMessage.webhookSecret} readOnly className="flex-1" />
-              <Button variant="outline" size="sm" onClick={() => copySecretValue("Webhook secret", secretMessage.webhookSecret)}>
+              <Button variant="outline" size="sm" onClick={() => copySecretValue(t("routineDetail.webhookSecretLabel", "Webhook 密钥"), secretMessage.webhookSecret)}>
                 <Copy className="h-3.5 w-3.5 mr-1" />
-                Secret
+                {t("routineDetail.secret", "密钥")}
               </Button>
             </div>
           </div>
@@ -814,7 +815,7 @@ export function RoutineDetail() {
                   <span className="truncate">{option.label}</span>
                 )
               ) : (
-                <span className="text-muted-foreground">Assignee</span>
+                <span className="text-muted-foreground">{t("routineDetail.assignee", "经办人")}</span>
               )
             }
             renderOption={(option) => {
@@ -828,7 +829,7 @@ export function RoutineDetail() {
               );
             }}
           />
-          <span>in</span>
+          <span>{t("routineDetail.in", "在")}</span>
           <InlineEntitySelector
             ref={projectSelectorRef}
             value={editDraft.projectId}
@@ -849,7 +850,7 @@ export function RoutineDetail() {
                   <span className="truncate">{option.label}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground">Project</span>
+                <span className="text-muted-foreground">{t("routineDetail.project", "项目")}</span>
               )
             }
             renderOption={(option) => {
@@ -987,7 +988,7 @@ export function RoutineDetail() {
                   <SelectContent>
                     {triggerKinds.map((kind) => (
                       <SelectItem key={kind} value={kind} disabled={kind === "webhook"}>
-                        {kind}{kind === "webhook" ? " — COMING SOON" : ""}
+                        {kind}{kind === "webhook" ? ` — ${t("routineDetail.comingSoon", "即将推出")}` : ""}
                       </SelectItem>
                     ))}
                   </SelectContent>

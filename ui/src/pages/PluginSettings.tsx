@@ -754,22 +754,22 @@ function PluginConfigForm({ pluginId, schema, initialValues, isLoading, pluginSt
 function formatUptime(uptimeMs: number | null): string {
   if (uptimeMs == null) return "—";
   const totalSeconds = Math.floor(uptimeMs / 1000);
-  if (totalSeconds < 60) return `${totalSeconds}s`;
+  if (totalSeconds < 60) return `${totalSeconds} 秒`;
   const minutes = Math.floor(totalSeconds / 60);
-  if (minutes < 60) return `${minutes}m ${totalSeconds % 60}s`;
+  if (minutes < 60) return `${minutes} 分 ${totalSeconds % 60} 秒`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ${minutes % 60}m`;
+  if (hours < 24) return `${hours} 小时 ${minutes % 60} 分`;
   const days = Math.floor(hours / 24);
-  return `${days}d ${hours % 24}h`;
+  return `${days} 天 ${hours % 24} 小时`;
 }
 
 /**
  * Format a duration in milliseconds to a compact display string.
  */
 function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`;
-  if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
-  return `${(ms / 60000).toFixed(1)}m`;
+  if (ms < 1000) return `${ms} 毫秒`;
+  if (ms < 60000) return `${(ms / 1000).toFixed(1)} 秒`;
+  return `${(ms / 60000).toFixed(1)} 分钟`;
 }
 
 /**
@@ -780,15 +780,15 @@ function formatRelativeTime(isoString: string): string {
   const then = new Date(isoString).getTime();
   const diffMs = now - then;
 
-  if (diffMs < 0) return "just now";
+  if (diffMs < 0) return "刚刚";
   const seconds = Math.floor(diffMs / 1000);
-  if (seconds < 60) return `${seconds}s ago`;
+  if (seconds < 60) return `${seconds} 秒前`;
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return `${minutes} 分钟前`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
+  if (hours < 24) return `${hours} 小时前`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${days} 天前`;
 }
 
 /**

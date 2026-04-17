@@ -93,14 +93,14 @@ export function CompanySettings() {
     onSuccess: (_company, enabled) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.companies.all });
       pushToast({
-        title: enabled ? "Feedback sharing enabled" : "Feedback sharing disabled",
+        title: enabled ? "已启用反馈共享" : "已停用反馈共享",
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Failed to update feedback sharing",
-        body: err instanceof Error ? err.message : "Unknown error",
+        title: "更新反馈共享设置失败",
+        body: err instanceof Error ? err.message : "未知错误",
         tone: "error",
       });
     },
@@ -154,7 +154,7 @@ export function CompanySettings() {
     },
     onError: (err) => {
       setInviteError(
-        err instanceof Error ? err.message : "Failed to create invite"
+        err instanceof Error ? err.message : "创建邀请失败"
       );
     }
   });

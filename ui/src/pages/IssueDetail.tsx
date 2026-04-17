@@ -229,9 +229,9 @@ function ActorIdentity({ evt, agentMap }: { evt: ActivityEvent; agentMap: Map<st
     const agent = agentMap.get(id);
     return <Identity name={agent?.name ?? id.slice(0, 8)} size="sm" />;
   }
-  if (evt.actorType === "system") return <Identity name="System" size="sm" />;
-  if (evt.actorType === "user") return <Identity name="Board" size="sm" />;
-  return <Identity name={id || "Unknown"} size="sm" />;
+  if (evt.actorType === "system") return <Identity name="系统" size="sm" />;
+  if (evt.actorType === "user") return <Identity name="控制台" size="sm" />;
+  return <Identity name={id || "未知"} size="sm" />;
 }
 
 function IssueSectionSkeleton({
@@ -307,7 +307,7 @@ function IssueDetailLoadingState({
               {headerSeed.originKind === "routine_execution" && headerSeed.originId ? (
                 <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/30 bg-violet-500/10 px-2 py-0.5 text-[10px] font-medium text-violet-600 dark:text-violet-400 shrink-0">
                   <Repeat className="h-3 w-3" />
-                  Routine
+                  自动化
                 </span>
               ) : null}
               {headerSeed.projectId ? (
@@ -320,7 +320,7 @@ function IssueDetailLoadingState({
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground opacity-50 px-1 -mx-1 py-0.5">
                   <Hexagon className="h-3 w-3 shrink-0" />
-                  No project
+                  无项目
                 </span>
               )}
             </>

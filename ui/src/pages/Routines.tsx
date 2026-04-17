@@ -53,13 +53,13 @@ import type { RoutineListItem, RoutineVariable } from "@paperclipai/shared";
 const concurrencyPolicies = ["coalesce_if_active", "always_enqueue", "skip_if_active"];
 const catchUpPolicies = ["skip_missed", "enqueue_missed_with_cap"];
 const concurrencyPolicyDescriptions: Record<string, string> = {
-  coalesce_if_active: "If a run is already active, keep just one follow-up run queued.",
-  always_enqueue: "Queue every trigger occurrence, even if the routine is already running.",
-  skip_if_active: "Drop new trigger occurrences while a run is still active.",
+  coalesce_if_active: "如果已有运行仍在进行中，则只保留一个后续运行排队。",
+  always_enqueue: "即使例行任务已在运行，也为每次触发都加入队列。",
+  skip_if_active: "当例行任务仍在运行时，丢弃新的触发。",
 };
 const catchUpPolicyDescriptions: Record<string, string> = {
-  skip_missed: "Ignore windows that were missed while the scheduler or routine was paused.",
-  enqueue_missed_with_cap: "Catch up missed schedule windows in capped batches after recovery.",
+  skip_missed: "当调度器或例行任务暂停时，忽略错过的时间窗口。",
+  enqueue_missed_with_cap: "恢复后以有上限的批次补跑错过的计划窗口。",
 };
 
 function autoResizeTextarea(element: HTMLTextAreaElement | null) {
@@ -69,7 +69,7 @@ function autoResizeTextarea(element: HTMLTextAreaElement | null) {
 }
 
 function formatLastRunTimestamp(value: Date | string | null | undefined) {
-  if (!value) return "Never";
+  if (!value) return "从未运行";
   return new Date(value).toLocaleString();
 }
 
@@ -78,42 +78,18 @@ function nextRoutineStatus(currentStatus: string, enabled: boolean) {
   return enabled ? "active" : "paused";
 }
 
-type RoutinesTab = "routines" | "runs";
-type RoutineGroupBy = "none" | "project" | "assignee";
-
-type RoutineViewState = {
-  groupBy: RoutineGroupBy;
-  collapsedGroups: string[];
-};
-
-type RoutineGroup = {
-  key: string;
-  label: string | null;
-  items: RoutineListItem[];
-};
-
-const defaultRoutineViewState: RoutineViewState = {
-  groupBy: "none",
-  collapsedGroups: [],
-};
-
-function getRoutineViewState(key: string): RoutineViewState {
-  try {
-    const raw = localStorage.getItem(key);
-    if (raw) return { ...defaultRoutineViewState, ...JSON.parse(raw) };
-  } catch {
-    // Ignore malformed local state and fall back to defaults.
-  }
-  return { ...defaultRoutineViewState };
-}
-
-function saveRoutineViewState(key: string, state: RoutineViewState) {
-  localStorage.setItem(key, JSON.stringify(state));
-}
-
 function formatRoutineRunStatus(value: string | null | undefined) {
   if (!value) return null;
-  return value.replaceAll("_", " ");
+  const normalized = value.replaceAll("_", " ").trim().toLowerCase();
+  const labels: Record<string, string> = {
+    queued: "排队中",
+    running: "运行中",
+    completed: "已完成",
+    failed: "失败",
+    canceled: "已取消",
+    "timed out": "超时",
+  };
+  return labels[normalized] ?? value.replaceAll("_", " ");
 }
 
 function buildRoutineMutationPayload(input: {
@@ -148,13 +124,13 @@ export function buildRoutineGroups(
     const groups = groupBy(routines, (routine) => routine.projectId ?? "__no_project");
     return Object.keys(groups)
       .sort((left, right) => {
-        const leftLabel = left === "__no_project" ? "No project" : (projectById.get(left)?.name ?? "Unknown project");
-        const rightLabel = right === "__no_project" ? "No project" : (projectById.get(right)?.name ?? "Unknown project");
+        const leftLabel = left === "__no_project" ? "无项目" : (projectById.get(left)?.name ?? "未知项目");
+        const rightLabel = right === "__no_project" ? "无项目" : (projectById.get(right)?.name ?? "未知项目");
         return leftLabel.localeCompare(rightLabel);
       })
       .map((key) => ({
         key,
-        label: key === "__no_project" ? "No project" : (projectById.get(key)?.name ?? "Unknown project"),
+        label: key === "__no_project" ? "无项目" : (projectById.get(key)?.name ?? "未知项目"),
         items: groups[key]!,
       }));
   }
@@ -162,13 +138,13 @@ export function buildRoutineGroups(
   const groups = groupBy(routines, (routine) => routine.assigneeAgentId ?? "__unassigned");
   return Object.keys(groups)
     .sort((left, right) => {
-      const leftLabel = left === "__unassigned" ? "Unassigned" : (agentById.get(left)?.name ?? "Unknown agent");
-      const rightLabel = right === "__unassigned" ? "Unassigned" : (agentById.get(right)?.name ?? "Unknown agent");
+      const leftLabel = left === "__unassigned" ? "未分配" : (agentById.get(left)?.name ?? "未知智能体");
+      const rightLabel = right === "__unassigned" ? "未分配" : (agentById.get(right)?.name ?? "未知智能体");
       return leftLabel.localeCompare(rightLabel);
     })
     .map((key) => ({
       key,
-      label: key === "__unassigned" ? "Unassigned" : (agentById.get(key)?.name ?? "Unknown agent"),
+      label: key === "__unassigned" ? "未分配" : (agentById.get(key)?.name ?? "未知智能体"),
       items: groups[key]!,
     }));
 }
@@ -198,6 +174,7 @@ function RoutineListRow({
   onToggleEnabled: (routine: RoutineListItem, enabled: boolean) => void;
   onToggleArchived: (routine: RoutineListItem) => void;
 }) {
+  const { t } = useTranslation();
   const enabled = routine.status === "active";
   const isArchived = routine.status === "archived";
   const isStatusPending = statusMutationRoutineId === routine.id;
@@ -215,7 +192,7 @@ function RoutineListRow({
           <span className="truncate text-sm font-medium">{routine.title}</span>
           {(isArchived || routine.status === "paused" || isDraft) ? (
             <span className="text-xs text-muted-foreground">
-              {isArchived ? "archived" : isDraft ? "draft" : "paused"}
+              {isArchived ? t("routines.archived", "已归档") : isDraft ? t("routines.draft", "草稿") : t("routines.paused", "已暂停")}
             </span>
           ) : null}
         </div>
@@ -225,11 +202,11 @@ function RoutineListRow({
               className="h-2.5 w-2.5 shrink-0 rounded-sm"
               style={{ backgroundColor: project?.color ?? "#64748b" }}
             />
-            <span>{routine.projectId ? (project?.name ?? "Unknown project") : "No project"}</span>
+            <span>{routine.projectId ? (project?.name ?? t("routines.unknownProject", "未知项目")) : t("routines.noProject", "无项目")}</span>
           </span>
           <span className="flex items-center gap-2">
             {agent?.icon ? <AgentIcon icon={agent.icon} className="h-3.5 w-3.5 shrink-0" /> : null}
-            <span>{routine.assigneeAgentId ? (agent?.name ?? "Unknown agent") : "No default agent"}</span>
+            <span>{routine.assigneeAgentId ? (agent?.name ?? t("routines.unknownAgent", "未知智能体")) : t("routines.noDefaultAgent", "无默认智能体")}</span>
           </span>
           <span>
             {formatLastRunTimestamp(routine.lastRun?.triggeredAt)}
@@ -245,41 +222,41 @@ function RoutineListRow({
             checked={enabled}
             onCheckedChange={() => onToggleEnabled(routine, enabled)}
             disabled={isStatusPending || isArchived}
-            aria-label={enabled ? `Disable ${routine.title}` : `Enable ${routine.title}`}
+            aria-label={enabled ? t("routines.disableRoutineAria", "禁用 {{title}}", { title: routine.title }) : t("routines.enableRoutineAria", "启用 {{title}}", { title: routine.title })}
           />
           <span className="w-12 text-xs text-muted-foreground">
-            {isArchived ? "Archived" : isDraft ? "Draft" : enabled ? "On" : "Off"}
+            {isArchived ? t("routines.archivedShort", "归档") : isDraft ? t("routines.draftShort", "草稿") : enabled ? t("routines.on", "开") : t("routines.off", "关")}
           </span>
         </div>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label={`More actions for ${routine.title}`}>
+            <Button variant="ghost" size="icon-sm" aria-label={t("routines.moreActionsFor", "{{title}} 的更多操作", { title: routine.title })}>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild>
-              <Link to={href}>Edit</Link>
+              <Link to={href}>{t("actions.edit", "编辑")}</Link>
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={runningRoutineId === routine.id || isArchived}
               onClick={() => onRunNow(routine)}
             >
-              {runningRoutineId === routine.id ? "Running..." : "Run now"}
+              {runningRoutineId === routine.id ? t("routines.running", "运行中...") : t("routines.runNow", "立即运行")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onToggleEnabled(routine, enabled)}
               disabled={isStatusPending || isArchived}
             >
-              {enabled ? "Pause" : "Enable"}
+              {enabled ? t("actions.pause", "暂停") : t("actions.enable", "启用")}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onToggleArchived(routine)}
               disabled={isStatusPending}
             >
-              {routine.status === "archived" ? "Restore" : "Archive"}
+              {routine.status === "archived" ? t("actions.unarchive", "取消归档") : t("actions.archive", "归档")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -388,10 +365,10 @@ export function Routines() {
       setAdvancedOpen(false);
       await queryClient.invalidateQueries({ queryKey: queryKeys.routines.list(selectedCompanyId!) });
       pushToast({
-        title: "Routine created",
+        title: t("routines.routineCreated", "例行任务已创建"),
         body: routine.assigneeAgentId
-          ? "Add the first trigger to turn it into a live workflow."
-          : "Draft saved. Add a default agent before enabling automation.",
+          ? t("routines.addFirstTrigger", "添加首个触发器以将其变为正式工作流。")
+          : t("routines.draftSaved", "草稿已保存。启用自动化前请先添加默认智能体。"),
         tone: "success",
       });
       navigate(`/routines/${routine.id}?tab=triggers`);
@@ -421,8 +398,8 @@ export function Routines() {
     },
     onError: (mutationError) => {
       pushToast({
-        title: "Failed to update routine",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not update the routine.",
+        title: t("routines.failedToUpdateRoutine", "更新例行任务失败"),
+        body: mutationError instanceof Error ? mutationError.message : t("routines.couldNotUpdateRoutine", "Paperclip 无法更新该例行任务。"),
         tone: "error",
       });
     },
@@ -456,8 +433,8 @@ export function Routines() {
     },
     onError: (mutationError) => {
       pushToast({
-        title: "Routine run failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not start the routine run.",
+        title: t("routines.routineRunFailed", "例行任务运行失败"),
+        body: mutationError instanceof Error ? mutationError.message : t("routines.couldNotStartRoutineRun", "Paperclip 无法启动例行任务运行。"),
         tone: "error",
       });
     },
@@ -714,15 +691,15 @@ export function Routines() {
             <div className="px-5 pb-3">
               <div className="overflow-x-auto overscroll-x-contain">
                 <div className="inline-flex min-w-full flex-wrap items-center gap-2 text-sm text-muted-foreground sm:min-w-max sm:flex-nowrap">
-                  <span>For</span>
+                  <span>{t("routines.for", "对于")}</span>
                   <InlineEntitySelector
                     ref={assigneeSelectorRef}
                     value={draft.assigneeAgentId}
                     options={assigneeOptions}
-                    placeholder="Assignee"
-                    noneLabel="No assignee"
-                    searchPlaceholder="Search assignees..."
-                    emptyMessage="No assignees found."
+                    placeholder={t("routines.assignee", "经办人")}
+                    noneLabel={t("routines.noAssignee", "无经办人")}
+                    searchPlaceholder={t("routines.searchAssignees", "搜索经办人...")}
+                    emptyMessage={t("routines.noAssigneesFound", "未找到经办人。")}
                     onChange={(assigneeAgentId) => {
                       if (assigneeAgentId) trackRecentAssignee(assigneeAgentId);
                       setDraft((current) => ({ ...current, assigneeAgentId }));
@@ -745,7 +722,7 @@ export function Routines() {
                           <span className="truncate">{option.label}</span>
                         )
                       ) : (
-                        <span className="text-muted-foreground">Assignee</span>
+                        <span className="text-muted-foreground">{t("routines.assignee", "经办人")}</span>
                       )
                     }
                     renderOption={(option) => {
@@ -759,15 +736,15 @@ export function Routines() {
                       );
                     }}
                   />
-                  <span>in</span>
+                  <span>{t("routines.in", "在")}</span>
                   <InlineEntitySelector
                     ref={projectSelectorRef}
                     value={draft.projectId}
                     options={projectOptions}
-                    placeholder="Project"
-                    noneLabel="No project"
-                    searchPlaceholder="Search projects..."
-                    emptyMessage="No projects found."
+                    placeholder={t("routines.project", "项目")}
+                    noneLabel={t("routines.noProject", "无项目")}
+                    searchPlaceholder={t("routines.searchProjects", "搜索项目...")}
+                    emptyMessage={t("routines.noProjectsFound", "未找到项目。")}
                     onChange={(projectId) => setDraft((current) => ({ ...current, projectId }))}
                     onConfirm={() => descriptionEditorRef.current?.focus()}
                     renderTriggerValue={(option) =>
@@ -780,7 +757,7 @@ export function Routines() {
                           <span className="truncate">{option.label}</span>
                         </>
                       ) : (
-                        <span className="text-muted-foreground">Project</span>
+                        <span className="text-muted-foreground">{t("routines.project", "项目")}</span>
                       )
                     }
                     renderOption={(option) => {

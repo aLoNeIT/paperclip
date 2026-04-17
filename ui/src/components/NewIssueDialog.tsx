@@ -95,27 +95,27 @@ const STAGED_FILE_ACCEPT = "image/*,application/pdf,text/plain,text/markdown,app
 
 const ISSUE_THINKING_EFFORT_OPTIONS = {
   claude_local: [
-    { value: "", label: "Default" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
+    { value: "", label: "默认" },
+    { value: "low", label: "低" },
+    { value: "medium", label: "中" },
+    { value: "high", label: "高" },
   ],
   codex_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
+    { value: "", label: "默认" },
+    { value: "minimal", label: "极低" },
+    { value: "low", label: "低" },
+    { value: "medium", label: "中" },
+    { value: "high", label: "高" },
+    { value: "xhigh", label: "超高" },
   ],
   opencode_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
-    { value: "max", label: "Max" },
+    { value: "", label: "默认" },
+    { value: "minimal", label: "极低" },
+    { value: "low", label: "低" },
+    { value: "medium", label: "中" },
+    { value: "high", label: "高" },
+    { value: "xhigh", label: "超高" },
+    { value: "max", label: "最高" },
   ],
 } as const;
 
@@ -226,24 +226,24 @@ function formatFileSize(file: File) {
 }
 
 const statuses = [
-  { value: "backlog", label: "Backlog", color: issueStatusText.backlog ?? issueStatusTextDefault },
-  { value: "todo", label: "Todo", color: issueStatusText.todo ?? issueStatusTextDefault },
-  { value: "in_progress", label: "In Progress", color: issueStatusText.in_progress ?? issueStatusTextDefault },
-  { value: "in_review", label: "In Review", color: issueStatusText.in_review ?? issueStatusTextDefault },
-  { value: "done", label: "Done", color: issueStatusText.done ?? issueStatusTextDefault },
+  { value: "backlog", label: "待办池", color: issueStatusText.backlog ?? issueStatusTextDefault },
+  { value: "todo", label: "待处理", color: issueStatusText.todo ?? issueStatusTextDefault },
+  { value: "in_progress", label: "进行中", color: issueStatusText.in_progress ?? issueStatusTextDefault },
+  { value: "in_review", label: "评审中", color: issueStatusText.in_review ?? issueStatusTextDefault },
+  { value: "done", label: "已完成", color: issueStatusText.done ?? issueStatusTextDefault },
 ];
 
 const priorities = [
-  { value: "critical", label: "Critical", icon: AlertTriangle, color: priorityColor.critical ?? priorityColorDefault },
-  { value: "high", label: "High", icon: ArrowUp, color: priorityColor.high ?? priorityColorDefault },
-  { value: "medium", label: "Medium", icon: Minus, color: priorityColor.medium ?? priorityColorDefault },
-  { value: "low", label: "Low", icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault },
+  { value: "critical", label: "紧急", icon: AlertTriangle, color: priorityColor.critical ?? priorityColorDefault },
+  { value: "high", label: "高", icon: ArrowUp, color: priorityColor.high ?? priorityColorDefault },
+  { value: "medium", label: "中", icon: Minus, color: priorityColor.medium ?? priorityColorDefault },
+  { value: "low", label: "低", icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault },
 ];
 
 const EXECUTION_WORKSPACE_MODES = [
-  { value: "shared_workspace", label: "Project default" },
-  { value: "isolated_workspace", label: "New isolated workspace" },
-  { value: "reuse_existing", label: "Reuse existing workspace" },
+  { value: "shared_workspace", label: "项目默认" },
+  { value: "isolated_workspace", label: "新建隔离工作区" },
+  { value: "reuse_existing", label: "复用现有工作区" },
 ] as const;
 
 function defaultProjectWorkspaceIdForProject(project: { workspaces?: Array<{ id: string; isPrimary: boolean }>; executionWorkspacePolicy?: { defaultProjectWorkspaceId?: string | null } | null } | null | undefined) {
