@@ -5,6 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { ThemeProvider } from "../context/ThemeContext";
 import { RunInvocationCard } from "../pages/AgentDetail";
 
+const mockT = (key: string, fallback: string) => fallback;
+
 describe("RunInvocationCard", () => {
   it("keeps verbose invocation details collapsed by default", () => {
     const html = renderToStaticMarkup(
@@ -21,6 +23,7 @@ describe("RunInvocationCard", () => {
             env: { ANTHROPIC_API_KEY: "***REDACTED***" },
           }}
           censorUsernameInLogs={false}
+          t={mockT}
         />
       </ThemeProvider>,
     );

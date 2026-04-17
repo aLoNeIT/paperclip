@@ -317,6 +317,7 @@ function OrgTreeNode({
   liveRunByAgent: Map<string, { runId: string; liveCount: number }>;
   tab: FilterTab;
 }) {
+  const { t } = useTranslation();
   const agent = agentMap.get(node.id);
 
   const statusColor = agentStatusDot[node.status] ?? agentStatusDotDefault;

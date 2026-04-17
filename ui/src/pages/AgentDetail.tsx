@@ -405,16 +405,16 @@ function parseStoredLogContent(content: string): RunLogChunk[] {
   return parsed;
 }
 
-function workspaceOperationPhaseLabel(phase: WorkspaceOperation["phase"], t: (key: string, fallback: string) => string) {
+function workspaceOperationPhaseLabel(phase: WorkspaceOperation["phase"]) {
   switch (phase) {
     case "worktree_prepare":
-      return t("agentDetail.worktreeSetup", "工作树准备");
+      return "工作树准备";
     case "workspace_provision":
-      return t("agentDetail.provision", "配置");
+      return "配置";
     case "workspace_teardown":
-      return t("agentDetail.teardown", "拆除");
+      return "拆除";
     case "worktree_cleanup":
-      return t("agentDetail.worktreeCleanup", "工作树清理");
+      return "工作树清理";
     default:
       return phase;
   }
@@ -455,6 +455,7 @@ function WorkspaceOperationLogViewer({
   operation: WorkspaceOperation;
   censorUsernameInLogs: boolean;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const { data: logData, isLoading, error } = useQuery({
     queryKey: ["workspace-operation-log", operation.id],
@@ -525,6 +526,7 @@ function WorkspaceOperationsSection({
   operations: WorkspaceOperation[];
   censorUsernameInLogs: boolean;
 }) {
+  const { t } = useTranslation();
   if (operations.length === 0) return null;
 
   return (
@@ -1166,6 +1168,7 @@ function SummaryRow({ label, children }: { label: string; children: React.ReactN
 }
 
 function LatestRunCard({ runs, agentId }: { runs: HeartbeatRun[]; agentId: string }) {
+  const { t } = useTranslation();
   if (runs.length === 0) return null;
 
   const sorted = [...runs].sort(
@@ -1269,6 +1272,7 @@ function AgentOverview({
   agentId: string;
   agentRouteId: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-8">
       {/* Latest Run */}
@@ -1341,6 +1345,7 @@ function CostsSection({
   runtimeState?: AgentRuntimeState;
   runs: HeartbeatRun[];
 }) {
+  const { t } = useTranslation();
   const runsWithCost = runs
     .filter((r) => {
       const metrics = runMetrics(r);
@@ -1431,6 +1436,7 @@ function AgentConfigurePage({
   onSavingChange: (saving: boolean) => void;
   updatePermissions: { mutate: (permissions: AgentPermissionUpdate) => void; isPending: boolean };
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [revisionsOpen, setRevisionsOpen] = useState(false);
 
@@ -1543,6 +1549,7 @@ function ConfigurationTab({
   hidePromptTemplate?: boolean;
   hideInstructionsFile?: boolean;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
   const [awaitingRefreshAfterSave, setAwaitingRefreshAfterSave] = useState(false);
@@ -1690,6 +1697,7 @@ function PromptsTab({
   onCancelActionChange: (cancel: (() => void) | null) => void;
   onSavingChange: (saving: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { selectedCompanyId } = useCompany();
   const { isMobile } = useSidebar();
@@ -2433,6 +2441,7 @@ function AgentSkillsTab({
   agent: Agent;
   companyId?: string;
 }) {
+  const { t } = useTranslation();
   type SkillRow = {
     id: string;
     key: string;
@@ -2903,6 +2912,7 @@ function RunsTab({
   adapterType: string;
   adapterConfig: Record<string, unknown>;
 }) {
+  const { t } = useTranslation();
   const { isMobile } = useSidebar();
 
   if (runs.length === 0) {
@@ -2971,6 +2981,7 @@ function RunsTab({
 /* ---- Run Detail (expanded) ---- */
 
 function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }: { run: HeartbeatRun; agentRouteId: string; adapterType: string; adapterConfig: Record<string, unknown> }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { data: hydratedRun } = useQuery({
@@ -3404,6 +3415,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
 /* ---- Log Viewer ---- */
 
 function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: string }) {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<HeartbeatRunEvent[]>([]);
   const [logLines, setLogLines] = useState<Array<{ ts: string; stream: "stdout" | "stderr" | "system"; chunk: string }>>([]);
   const [loading, setLoading] = useState(true);
@@ -3820,7 +3832,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
         censorUsernameInLogs={censorUsernameInLogs}
       />
       {adapterInvokePayload && (
-        <RunInvocationCard payload={adapterInvokePayload} censorUsernameInLogs={censorUsernameInLogs} />
+        <RunInvocationCard payload={adapterInvokePayload} censorUsernameInLogs={censorUsernameInLogs} t={t} />
       )}
 
       <div className="flex items-center justify-between">
@@ -3960,6 +3972,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
 /* ---- Keys Tab ---- */
 
 function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [newKeyName, setNewKeyName] = useState("");
   const [newToken, setNewToken] = useState<string | null>(null);

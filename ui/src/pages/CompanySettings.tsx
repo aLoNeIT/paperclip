@@ -328,7 +328,7 @@ export function CompanySettings() {
                       {logoUploadError ??
                         (logoUploadMutation.error instanceof Error
                           ? logoUploadMutation.error.message
-                          : t("settings.logoUploadFailed", "标志上传失败")}
+                          : t("settings.logoUploadFailed", "标志上传失败"))}
                     </span>
                   )}
                   {clearLogoMutation.isError && (

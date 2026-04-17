@@ -269,7 +269,8 @@ export function RoutineDetail() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const location = useLocation();
-  const { pushToast, t } = useToast();
+  const { pushToast } = useToast();
+  const { t } = useTranslation();
   const hydratedRoutineIdRef = useRef<string | null>(null);
   const titleInputRef = useRef<HTMLTextAreaElement | null>(null);
   const descriptionEditorRef = useRef<MarkdownEditorRef>(null);

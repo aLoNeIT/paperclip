@@ -251,6 +251,7 @@ function NewSkillForm({
   isPending: boolean;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
@@ -404,6 +405,7 @@ function SkillList({
   onSelectSkill: (skillId: string) => void;
   onSelectPath: (skillId: string, path: string) => void;
 }) {
+  const { t } = useTranslation();
   const filteredSkills = skills.filter((skill) => {
     const haystack = `${skill.name} ${skill.key} ${skill.slug} ${skill.sourceLabel ?? ""}`.toLowerCase();
     return haystack.includes(skillFilter.toLowerCase());
@@ -532,6 +534,7 @@ function SkillPane({
   savePending: boolean;
 }) {
   const { pushToast } = useToast();
+  const { t } = useTranslation();
 
   if (!detail) {
     if (loading) {

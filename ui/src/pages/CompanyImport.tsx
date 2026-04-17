@@ -834,7 +834,7 @@ export function CompanyImport() {
 
   // Build final adapter overrides for import request
   function buildFinalAdapterOverrides(): Record<string, CompanyPortabilityAdapterOverride> | undefined {
-    if (adapterOverrides.length === 0) return undefined;
+    if (Object.keys(adapterOverrides).length === 0) return undefined;
     const overrides: Record<string, CompanyPortabilityAdapterOverride> = {};
     for (const [slug, adapterType] of Object.entries(adapterOverrides)) {
       const override: CompanyPortabilityAdapterOverride = { adapterType };

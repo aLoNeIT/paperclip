@@ -882,6 +882,7 @@ function IssueChatUserMessage() {
   const pending = custom.clientStatus === "pending";
   const queueTargetRunId = typeof custom.queueTargetRunId === "string" ? custom.queueTargetRunId : null;
   const [copied, setCopied] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <MessagePrimitive.Root id={anchorId}>
@@ -971,6 +972,7 @@ function IssueChatUserMessage() {
 }
 
 function IssueChatAssistantMessage() {
+  const { t } = useTranslation();
   const {
     feedbackVoteByTargetId,
     feedbackDataSharingPreference,
@@ -1193,6 +1195,7 @@ function IssueChatFeedbackButtons({
   termsUrl: string | null;
   onVote: (vote: FeedbackVoteValue, options?: { allowSharing?: boolean; reason?: string }) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [optimisticVote, setOptimisticVote] = useState<FeedbackVoteValue | null>(null);
   const [reasonOpen, setReasonOpen] = useState(false);

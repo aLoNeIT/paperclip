@@ -39,7 +39,7 @@ export function ApprovalCard({
   onOpen?: () => void;
   detailLink?: string;
   isPending?: boolean;
-  pendingAction?: "approve" | "reject" | null;
+  pendingAction?: "approve" | "reject" | string | null;
 }) {
   const payload = approval.payload as Record<string, unknown> | null;
   const Icon = typeIcon[approval.type] ?? defaultTypeIcon;
