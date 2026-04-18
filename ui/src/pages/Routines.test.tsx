@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act } from "react";
+import { act, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Issue, RoutineListItem } from "@paperclipai/shared";
@@ -17,6 +17,18 @@ const issuesListRenderMock = vi.fn(({ issues }: { issues: Issue[] }) => (
 ));
 
 vi.mock("@/lib/router", () => ({
+  Link: ({
+    children,
+    to,
+    ...props
+  }: {
+    children?: ReactNode;
+    to?: string;
+  } & Record<string, unknown>) => (
+    <a href={typeof to === "string" ? to : ""} {...props}>
+      {children}
+    </a>
+  ),
   useNavigate: () => navigateMock,
   useLocation: () => ({ pathname: "/routines", search: currentSearch ? `?${currentSearch}` : "", hash: "" }),
   useSearchParams: () => [new URLSearchParams(currentSearch), vi.fn()],
@@ -359,6 +371,43 @@ describe("Routines page", () => {
     });
 
     expect(issuesListMock).toHaveBeenCalledWith("company-1", { originKind: "routine_execution" });
+
+    await act(async () => {
+      root.unmount();
+    });
+  });
+
+  it("restores the saved routine group view from local storage", async () => {
+    routinesListMock.mockResolvedValue([
+      createRoutine({ id: "routine-1", title: "Morning sync", projectId: "project-1" }),
+      createRoutine({ id: "routine-2", title: "Weekly digest", projectId: "project-2", assigneeAgentId: "agent-2" }),
+    ]);
+    issuesListMock.mockResolvedValue([]);
+    localStorage.setItem(
+      "paperclip:routines-view:company-1",
+      JSON.stringify({ groupBy: "project", collapsedGroups: [] }),
+    );
+
+    const root = createRoot(container);
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+      },
+    });
+
+    await act(async () => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <Routines />
+        </QueryClientProvider>,
+      );
+      await flush();
+    });
+
+    await vi.waitFor(() => {
+      expect(container.textContent).toContain("Project Alpha");
+      expect(container.textContent).toContain("Project Beta");
+    });
 
     await act(async () => {
       root.unmount();
