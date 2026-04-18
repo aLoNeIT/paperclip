@@ -59,7 +59,7 @@ export function Sidebar() {
           />
         )}
         <span className="flex-1 text-sm font-bold text-foreground truncate pl-1">
-          {selectedCompany?.name ?? "Select company"}
+          {selectedCompany?.name ?? "选择公司"}
         </span>
         <Button
           variant="ghost"
@@ -110,7 +110,7 @@ export function Sidebar() {
         <SidebarAgents />
 
         <SidebarSection label={t("company.settings")}>
-          <SidebarNavItem to="/org" label="Org" icon={Network} />
+          <SidebarNavItem to="/org" label="组织" icon={Network} />
           <SidebarNavItem to="/skills" label={t("nav.agents")} icon={Boxes} />
           <SidebarNavItem to="/costs" label={t("nav.costs")} icon={DollarSign} />
           <SidebarNavItem to="/activity" label={t("nav.activity")} icon={History} />
