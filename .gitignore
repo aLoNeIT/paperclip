@@ -7,6 +7,8 @@ drizzle/meta/
 coverage/
 .DS_Store
 data/
+docker/pgdata/
+docker/paperclip-data/
 .paperclip/
 .pnpm-store/
 tmp-*

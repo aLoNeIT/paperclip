@@ -78,6 +78,41 @@ function nextRoutineStatus(currentStatus: string, enabled: boolean) {
   return enabled ? "active" : "paused";
 }
 
+type RoutinesTab = "routines" | "runs";
+type RoutineGroupBy = "none" | "project" | "assignee";
+
+type RoutineViewState = {
+  groupBy: RoutineGroupBy;
+  collapsedGroups: string[];
+};
+
+type RoutineGroup = {
+  key: string;
+  label: string | null;
+  items: RoutineListItem[];
+};
+
+const defaultRoutineViewState: RoutineViewState = {
+  groupBy: "none",
+  collapsedGroups: [],
+};
+
+function getRoutineViewState(key: string): RoutineViewState {
+  try {
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      return { ...defaultRoutineViewState, ...JSON.parse(raw) };
+    }
+  } catch {
+    // Ignore malformed local state and fall back to defaults.
+  }
+  return { ...defaultRoutineViewState };
+}
+
+function saveRoutineViewState(key: string, state: RoutineViewState) {
+  localStorage.setItem(key, JSON.stringify(state));
+}
+
 function formatRoutineRunStatus(value: string | null | undefined) {
   if (!value) return null;
   const normalized = value.replaceAll("_", " ").trim().toLowerCase();
