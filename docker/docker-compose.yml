@@ -33,6 +33,7 @@ services:
     volumes:
       - ${PAPERCLIP_DATA:-./paperclip-data}:/paperclip
       - ${CODEX_CONFIG:-./codex/config.toml}:/paperclip/.codex/config.toml:rw
+      - ${CODEX_AUTH:-./codex/auth.json}:/paperclip/.codex/auth.json:ro
     depends_on:
       db:
         condition: service_healthy
