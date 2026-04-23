@@ -1,0 +1,14 @@
+model_provider = "linkapi"
+model = "gpt-5.4"  # 或您选择的模型名称
+model_reasoning_effort = "xhigh"
+# model_verbosity = "high"
+disable_response_storage = true
+preferred_auth_method = "apikey"
+
+[model_providers.linkapi]
+name = "linkapi"
+base_url = "https://linkapi.ai/v1"
+wire_api = "responses"
+
+[windows]
+sandbox = "elevated"
