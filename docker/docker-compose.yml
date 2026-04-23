@@ -25,6 +25,7 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-paperclip}:${POSTGRES_PASSWORD:-paperclip}@db:5432/${POSTGRES_DB:-paperclip}
       PORT: ${PORT:-8101}
       SERVE_UI: "true"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
       PAPERCLIP_DEPLOYMENT_MODE: "authenticated"
       PAPERCLIP_DEPLOYMENT_EXPOSURE: "private"
       PAPERCLIP_PUBLIC_URL: "${PAPERCLIP_PUBLIC_URL:-http://localhost:8101}"
